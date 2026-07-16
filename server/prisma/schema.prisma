@@ -7,12 +7,83 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
 model User {
-  id         String   @id @default(uuid())
-  firstName  String
-  lastName   String
-  email      String   @unique
-  password   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String         @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String         @unique
+  password     String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  transactions Transaction[]
+  accounts     Account[]
+  categories   Category[]
+}
+
+model Category {
+  id           String         @id @default(uuid())
+  name         String
+  description  String?
+
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Account {
+  id           String         @id @default(uuid())
+  name         String
+  description  String?
+
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id           String           @id @default(uuid())
+
+  amount       Decimal          @db.Decimal(15,2)
+
+  type         TransactionType
+
+  description  String?
+
+  transactionDate DateTime
+
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId   String
+  category     Category         @relation(fields: [categoryId], references: [id])
+
+  accountId    String
+  account      Account          @relation(fields: [accountId], references: [id])
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([accountId])
+  @@index([transactionDate])
+  @@index([type])
 }
