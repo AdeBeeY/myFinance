@@ -1,3 +1,4 @@
+const errorHandler = require("./middlewares/errorHandler");
 const express = require("express");
 const cors = require("cors");
 
@@ -15,5 +16,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use(errorHandler);
 
 module.exports = app;
