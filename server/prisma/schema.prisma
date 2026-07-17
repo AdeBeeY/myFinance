@@ -27,19 +27,24 @@ model User {
 }
 
 model Category {
-  id           String         @id @default(uuid())
-  name         String
-  description  String?
+  id          String @id @default(uuid())
 
-  userId       String
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+
+  type        TransactionType
+
+  description String?
+
+  userId      String
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions Transaction[]
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([userId, name])
+  @@unique([userId, name, type])
 }
 
 model Account {
