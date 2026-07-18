@@ -14,10 +14,19 @@ const createCategoryValidator = [
     .trim()
     .notEmpty()
     .withMessage("Category type is required.")
-    .isIn(["income", "expense"])
-    .withMessage("Category type must be either 'income' or 'expense'."),
+    .isIn(["INCOME", "EXPENSE"])
+    .withMessage("Category type must be either 'INCOME' or 'EXPENSE'."),
+
+  body("description")
+    .optional()
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage("Description cannot exceed 255 characters."),
 ];
+
+const updateCategoryValidator = createCategoryValidator;
 
 module.exports = {
   createCategoryValidator,
+  updateCategoryValidator,
 };
