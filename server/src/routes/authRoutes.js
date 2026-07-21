@@ -13,10 +13,21 @@ const {
 } = require("../validators/authValidator");
 
 const authenticate = require("../middlewares/authMiddleware");
+const validationMiddleware = require("../middlewares/validationMiddleware");
 
-router.post("/register", registerValidator, register);
+router.post(
+  "/register",
+  registerValidator,
+  validationMiddleware,
+  register
+);
 
-router.post("/login", loginValidator, login);
+router.post(
+  "/login",
+  loginValidator,
+  validationMiddleware,
+  login
+);
 
 router.get("/profile", authenticate, profile);
 
