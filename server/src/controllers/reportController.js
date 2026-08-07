@@ -61,8 +61,51 @@ const getCategorySpendingReport = asyncHandler(
   }
 );
 
+const getDateRangeReport = asyncHandler(
+  async (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    const report =
+      await reportService.getDateRangeReport(
+        req.user.id,
+        startDate,
+        endDate
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Date range report retrieved successfully.",
+        report
+      )
+    );
+  }
+);
+
+const getMonthlyTrends = asyncHandler(
+  async (req, res) => {
+    const { year } = req.query;
+
+    const trends =
+      await reportService.getMonthlyTrends(
+        req.user.id,
+        year
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Monthly trends retrieved successfully.",
+        trends
+      )
+    );
+  }
+);
+
 module.exports = {
   getDashboardSummary,
   getMonthlyReport,
   getCategorySpendingReport,
+  getDateRangeReport,
+  getMonthlyTrends,
 };

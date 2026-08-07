@@ -213,9 +213,108 @@ const getCategorySpendingReport = async (
   return report;
 };
 
+const getDateRangeReport = async (
+  userId,
+  startDate,
+  endDate
+) => {
+  const start = new Date(startDate);
+
+  const end = new Date(endDate);
+
+  end.setDate(end.getDate() + 1);
+
+  const { income, expense } =
+  await getIncomeExpenseTotals(userId, {
+    transactionDate: {
+      gte: start,
+      lt: end,
+    },
+  });
+
+  const transactionCount =
+  await prisma.transaction.count({
+    where: {
+      userId,
+      transactionDate: {
+        gte: start,
+        lt: end,
+      },
+    },
+  });
+
+  const balance = income - expense;
+
+  return {
+    startDate,
+    endDate,
+    income,
+    expense,
+    balance,
+    transactionCount,
+  };
+};
+
+const getMonthlyTrends = async (
+  userId,
+  year
+) => {
+  const start = new Date(year, 0, 1);
+
+  const end = new Date(Number(year) + 1, 0, 1);
+
+  const transactions =
+  await prisma.transaction.findMany({
+    where: {
+      userId,
+      transactionDate: {
+        gte: start,
+        lt: end,
+      },
+    },
+
+    select: {
+      amount: true,
+      type: true,
+      transactionDate: true,
+    },
+
+    orderBy: {
+      transactionDate: "asc",
+    },
+  });
+
+  const monthlyTrends = Array.from(
+    { length: 12 },
+    (_, index) => ({
+      month: index + 1,
+      income: 0,
+      expense: 0,
+    })
+  );
+
+  transactions.forEach((transaction) => {
+    const month =
+      transaction.transactionDate.getMonth();
+
+    if (transaction.type === "INCOME") {
+      monthlyTrends[month].income += Number(
+        transaction.amount
+      );
+    } else {
+      monthlyTrends[month].expense += Number(
+        transaction.amount
+      );
+    }
+  });
+  return monthlyTrends;
+};
+
 module.exports = {
   getIncomeExpenseTotals,
   getDashboardSummary,
   getMonthlyReport,
   getCategorySpendingReport,
+  getDateRangeReport,
+  getMonthlyTrends,
 };
