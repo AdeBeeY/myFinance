@@ -97,7 +97,57 @@ const updateTransactionValidator = [
     .withMessage("Description cannot exceed 191 characters."),
 ];
 
+const { query } = require("express-validator");
+
+const transactionQueryValidator = [
+  query("page")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Page must be an integer greater than or equal to 1."),
+
+  query("limit")
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage("Limit must be between 1 and 100."),
+
+  query("type")
+    .optional()
+    .isIn(["INCOME", "EXPENSE"])
+    .withMessage("Type must be either INCOME or EXPENSE."),
+
+  query("sort")
+    .optional()
+    .isIn([
+      "date_desc",
+      "date_asc",
+      "amount_desc",
+      "amount_asc",
+    ])
+    .withMessage("Invalid sort option."),
+
+  query("minAmount")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Minimum amount must be a positive number."),
+
+  query("maxAmount")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Maximum amount must be a positive number."),
+
+  query("startDate")
+    .optional()
+    .isISO8601()
+    .withMessage("Start date must be a valid date."),
+
+  query("endDate")
+    .optional()
+    .isISO8601()
+    .withMessage("End date must be a valid date."),
+];
+
 module.exports = {
   createTransactionValidator,
   updateTransactionValidator,
+  transactionQueryValidator,
 };

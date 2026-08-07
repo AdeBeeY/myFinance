@@ -73,10 +73,135 @@ const getTransactions = async (
   userId,
   filters = {}
 ) => {
+  // Destructure filters
+  const {
+    type,
+    accountId,
+    categoryId,
+    startDate,
+    endDate,
+    minAmount,
+    maxAmount,
+    search,
+    sort,
+    page = 1,
+    limit = 10,
+  } = filters;
+
+  // Step 2: Initialize the where clause object with required userId
+  const where = {
+    userId,
+  };
+
+  let orderBy = {
+    transactionDate: "desc",
+  };
+
+  const currentPage = Number(page);
+
+  const pageSize = Number(limit);
+
+  const skip = (currentPage - 1) * pageSize;
+
+  switch (sort) {
+    case "date_asc":
+      orderBy = {
+        transactionDate: "asc",
+      };
+      break;
+
+    case "amount_desc":
+      orderBy = {
+        amount: "desc",
+      };
+      break;
+
+    case "amount_asc":
+      orderBy = {
+        amount: "asc",
+      };
+      break;
+
+    case "date_desc":
+    default:
+      orderBy = {
+        transactionDate: "desc",
+      };
+  }
+
+  if (type) {
+    where.type = type;
+  }
+
+  if (accountId) {
+    where.accountId = accountId;
+  }
+
+  if (categoryId) {
+    where.categoryId = categoryId;
+  }
+  
+  if (startDate || endDate) {
+    where.transactionDate = {};
+
+    if (startDate) {
+      where.transactionDate.gte = new Date(startDate);
+    }
+
+    if (endDate) {
+      where.transactionDate.lte = new Date(endDate);
+    }
+  }
+
+  if (minAmount || maxAmount) {
+    where.amount = {};
+
+    if (minAmount) {
+      where.amount.gte = Number(minAmount);
+    }
+
+    if (maxAmount) {
+      where.amount.lte = Number(maxAmount);
+    }
+  }
+
+  if (search) {
+    where.OR = [
+      {
+        description: {
+          contains: search,
+        },
+      },
+
+      {
+        account: {
+          name: {
+            contains: search,
+          },
+        },
+      },
+
+      {
+        category: {
+          name: {
+            contains: search,
+          },
+        },
+      },
+    ];
+  }
+
+  const totalTransactions =
+  await prisma.transaction.count({
+    where,
+  });
+
+  const totalPages = Math.ceil(
+    totalTransactions / pageSize
+  );
+
   const transactions = await prisma.transaction.findMany({
-    where: {
-      userId,
-    },
+    where,
 
     include: {
       category: {
@@ -95,11 +220,20 @@ const getTransactions = async (
       },
     },
 
-    orderBy: {
-      transactionDate: "desc",
-    },
+    orderBy,
+    skip,
+    take: pageSize,
   });
- return transactions;
+ return {
+    transactions,
+
+    pagination: {
+      page: currentPage,
+      limit: pageSize,
+      total: totalTransactions,
+      totalPages,
+    },
+  };
 };
 
 const getTransactionById = async (
