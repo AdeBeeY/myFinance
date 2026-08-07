@@ -16,6 +16,7 @@ const {
   getCategorySpendingReport,
   getDateRangeReport,
   getMonthlyTrends,
+  getCashFlowAnalysis,
 } = require("../controllers/reportController");
 
 
@@ -56,6 +57,14 @@ router.get(
   yearlyReportValidator,
   validationMiddleware,
   getMonthlyTrends
+);
+
+router.get(
+  "/cash-flow",
+  authenticate,
+  yearlyReportValidator,
+  validationMiddleware,
+  getCashFlowAnalysis
 );
 
 module.exports = router;

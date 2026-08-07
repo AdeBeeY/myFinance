@@ -310,6 +310,74 @@ const getMonthlyTrends = async (
   return monthlyTrends;
 };
 
+const getCashFlowAnalysis = async (
+  userId,
+  year
+) => {
+  const start = new Date(year, 0, 1);
+
+  const end = new Date(Number(year) + 1, 0, 1);
+
+  const transactions =
+  await prisma.transaction.findMany({
+    where: {
+      userId,
+      transactionDate: {
+        gte: start,
+        lt: end,
+      },
+    },
+
+    select: {
+      amount: true,
+      type: true,
+      transactionDate: true,
+    },
+
+    orderBy: {
+      transactionDate: "asc",
+    },
+  });
+  
+  const cashFlow = Array.from(
+    { length: 12 },
+    (_, index) => ({
+      month: index + 1,
+      income: 0,
+      expense: 0,
+      netCashFlow: 0,
+      runningBalance: 0,
+    })
+  );
+  
+  transactions.forEach((transaction) => {
+    const month =
+      transaction.transactionDate.getMonth();
+
+    if (transaction.type === "INCOME") {
+      cashFlow[month].income += Number(
+        transaction.amount
+      );
+    } else {
+      cashFlow[month].expense += Number(
+        transaction.amount
+      );
+    }
+  });
+
+  let runningBalance = 0;
+
+  cashFlow.forEach((monthData) => {
+    monthData.netCashFlow =
+      monthData.income - monthData.expense;
+
+    runningBalance += monthData.netCashFlow;
+
+    monthData.runningBalance = runningBalance;
+  });
+  return cashFlow;
+};
+
 module.exports = {
   getIncomeExpenseTotals,
   getDashboardSummary,
@@ -317,4 +385,5 @@ module.exports = {
   getCategorySpendingReport,
   getDateRangeReport,
   getMonthlyTrends,
+  getCashFlowAnalysis,
 };

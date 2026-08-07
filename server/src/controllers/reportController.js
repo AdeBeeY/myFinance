@@ -102,10 +102,31 @@ const getMonthlyTrends = asyncHandler(
   }
 );
 
+const getCashFlowAnalysis = asyncHandler(
+  async (req, res) => {
+    const { year } = req.query;
+
+    const cashFlow =
+      await reportService.getCashFlowAnalysis(
+        req.user.id,
+        year
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Cash flow analysis retrieved successfully.",
+        cashFlow
+      )
+    );
+  }
+);
+
 module.exports = {
   getDashboardSummary,
   getMonthlyReport,
   getCategorySpendingReport,
   getDateRangeReport,
   getMonthlyTrends,
+  getCashFlowAnalysis,
 };
