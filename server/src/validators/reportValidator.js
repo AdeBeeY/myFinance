@@ -11,6 +11,7 @@ const monthlyReportValidator = [
     .notEmpty()
     .withMessage("Month is required.")
     .isInt({ min: 1, max: 12 })
+    .toInt()
     .withMessage("Month must be between 1 and 12."),
 ];
 
@@ -45,13 +46,30 @@ const yearlyReportValidator = [
     .notEmpty()
     .withMessage("Year is required.")
     .isInt({ min: 2000, max: 2100 })
+    .toInt()
     .withMessage(
       "Year must be between 2000 and 2100."
     ),
 ];
 
+const reportLimitValidator = query("limit")
+  .optional()
+  .isInt({ min: 1, max: 100 })
+  .toInt()
+  .withMessage("Limit must be an integer between 1 and 100.");
+
+  const topSpendingCategoriesValidator = [
+  reportLimitValidator,
+  ];
+
+  const largestTransactionsValidator = [
+    reportLimitValidator,
+  ];
+
 module.exports = {
   monthlyReportValidator,
   dateRangeReportValidator,
   yearlyReportValidator,
+  topSpendingCategoriesValidator,
+  largestTransactionsValidator,
 };

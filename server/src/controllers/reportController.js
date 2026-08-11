@@ -122,6 +122,132 @@ const getCashFlowAnalysis = asyncHandler(
   }
 );
 
+const getExpenseBreakdownByCategory = asyncHandler(
+  async (req, res) => {
+    const result =
+      await reportService.getExpenseBreakdownByCategory(
+        req.user.id
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Expense breakdown retrieved successfully.",
+        result
+      )
+    );
+  }
+);
+
+const getTopSpendingCategories = asyncHandler(
+  async (req, res) => {
+    const limit = req.query.limit || 5;
+
+    const result =
+      await reportService.getTopSpendingCategories(
+        req.user.id,
+        limit
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Top spending categories retrieved successfully.",
+        result
+      )
+    );
+  }
+);
+
+const getLargestTransactions = asyncHandler(
+  async (req, res) => {
+    const limit = req.query.limit || 5;
+
+    const result =
+      await reportService.getLargestTransactions(
+        req.user.id,
+        limit
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Largest transactions retrieved successfully.",
+        result
+      )
+    );
+  }
+);
+
+const getIncomeExpenseRatio = asyncHandler(
+  async (req, res) => {
+    const result =
+      await reportService.getIncomeExpenseRatio(
+        req.user.id
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Income and expense ratio retrieved successfully.",
+        result
+      )
+    );
+  }
+);
+
+const getSavingsRate = asyncHandler(
+  async (req, res) => {
+    const result =
+      await reportService.getSavingsRate(
+        req.user.id
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Savings rate retrieved successfully.",
+        result
+      )
+    );
+  }
+);
+
+const getMonthlySavingsTrend = asyncHandler(
+  async (req, res) => {
+    const result =
+      await reportService.getMonthlySavingsTrend(
+        req.user.id,
+        Number(req.query.year)
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Monthly savings trend retrieved successfully.",
+        result
+      )
+    );
+  }
+);
+
+const getFinancialHealth = asyncHandler(
+  async (req, res) => {
+    const result =
+      await reportService.getFinancialHealth(
+        req.user.id
+      );
+
+    return res.status(200).json(
+      apiResponse(
+        true,
+        "Financial health retrieved successfully.",
+        result
+      )
+    );
+  }
+);
+
 module.exports = {
   getDashboardSummary,
   getMonthlyReport,
@@ -129,4 +255,11 @@ module.exports = {
   getDateRangeReport,
   getMonthlyTrends,
   getCashFlowAnalysis,
+  getExpenseBreakdownByCategory,
+  getTopSpendingCategories,
+  getLargestTransactions,
+  getIncomeExpenseRatio,
+  getSavingsRate,
+  getMonthlySavingsTrend,
+  getFinancialHealth,
 };
