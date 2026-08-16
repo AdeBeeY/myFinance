@@ -13,6 +13,11 @@ const registerValidator = [
   body("password")
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long."),
+
+  body("currency")
+    .optional()
+    .isIn(["NGN", "USD", "GBP", "EUR"])
+    .withMessage("Please select a valid currency."),
 ];
 
 const loginValidator = [

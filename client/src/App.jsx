@@ -1,16 +1,23 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="rounded-xl bg-white p-10 shadow-lg">
-        <h1 className="text-4xl font-bold text-blue-700">
-          MyFinance
-        </h1>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
-        <p className="mt-4 text-gray-600">
-          Tailwind CSS is working successfully 🎉
-        </p>
-      </div>
-    </div>
+        <Route
+          path="*"
+          element={<Navigate to="/dashboard" replace />}
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

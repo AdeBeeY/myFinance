@@ -35,7 +35,7 @@ const getIncomeExpenseTotals = async (userId, extraWhere = {}) => {
 
 const getDashboardSummary = async (userId) => {
   const [
-    { income: totalIncome, expense: totalExpense },
+    { totalIncome, totalExpense },
     totalAccounts,
     totalCategories,
     totalTransactions,

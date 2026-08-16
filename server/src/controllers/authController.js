@@ -14,6 +14,7 @@ const register = asyncHandler(async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      currency: user.currency,
     },
   });
 });

@@ -12,12 +12,20 @@ enum TransactionType {
   EXPENSE
 }
 
+enum Currency {
+  NGN
+  USD
+  GBP
+  EUR
+}
+
 model User {
   id           String         @id @default(uuid())
   firstName    String
   lastName     String
   email        String         @unique
   password     String
+  currency     Currency       @default(NGN)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 

@@ -5,7 +5,13 @@ const prisma = require("../config/prisma");
 const { JWT_SECRET, JWT_EXPIRES_IN } = require("../config/env");
 
 const registerUser = async (userData) => {
-  const { firstName, lastName, email, password } = userData;
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    currency,
+  } = userData;
 
   // Check if email already exists
   const existingUser = await prisma.user.findUnique({
@@ -31,6 +37,7 @@ const registerUser = async (userData) => {
       lastName,
       email,
       password: hashedPassword,
+      ...(currency && { currency }),
     },
   });
 
@@ -81,6 +88,7 @@ const loginUser = async ({ email, password }) => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      currency: user.currency,
     },
   };
 };
