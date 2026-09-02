@@ -27,7 +27,10 @@ const createAccount = async ({
     },
   });
 
-  return account;
+  return {
+    ...account,
+    balance: 0,
+  };
 };
 
 const getAccounts = async (userId) => {
@@ -35,12 +38,41 @@ const getAccounts = async (userId) => {
     where: {
       userId,
     },
+    include: {
+      transactions: {
+        select: {
+          amount: true,
+          type: true,
+        },
+      },
+    },
     orderBy: {
       name: "asc",
     },
   });
 
-  return accounts;
+  return accounts.map((account) => {
+    let balance = 0;
+
+    for (const transaction of account.transactions) {
+      const amount = Number(transaction.amount);
+
+      if (transaction.type === "INCOME") {
+        balance += amount;
+      } else if (transaction.type === "EXPENSE") {
+        balance -= amount;
+      }
+    }
+
+    return {
+      id: account.id,
+      name: account.name,
+      description: account.description,
+      balance,
+      createdAt: account.createdAt,
+      updatedAt: account.updatedAt,
+    };
+  });
 };
 
 const getAccountById = async (userId, accountId) => {
@@ -49,13 +81,40 @@ const getAccountById = async (userId, accountId) => {
       id: accountId,
       userId,
     },
+    include: {
+      transactions: {
+        select: {
+          amount: true,
+          type: true,
+        },
+      },
+    },
   });
 
   if (!account) {
     throw new AppError("Account not found.", 404);
   }
 
-  return account;
+  let balance = 0;
+
+  for (const transaction of account.transactions) {
+    const amount = Number(transaction.amount);
+
+    if (transaction.type === "INCOME") {
+      balance += amount;
+    } else if (transaction.type === "EXPENSE") {
+      balance -= amount;
+    }
+  }
+
+  return {
+    id: account.id,
+    name: account.name,
+    description: account.description,
+    balance,
+    createdAt: account.createdAt,
+    updatedAt: account.updatedAt,
+  };
 };
 
 const updateAccount = async (
@@ -104,7 +163,7 @@ const updateAccount = async (
     },
   });
 
-  return updatedAccount;
+  return getAccountById(userId, accountId);
 };
 
 const deleteAccount = async (userId, accountId) => {
@@ -118,6 +177,21 @@ const deleteAccount = async (userId, accountId) => {
 
   if (!existingAccount) {
     throw new AppError("Account not found.", 404);
+  }
+
+  // Check whether the account has transactions
+  const transactionCount = await prisma.transaction.count({
+    where: {
+      accountId,
+      userId,
+    },
+  });
+
+  if (transactionCount > 0) {
+    throw new AppError(
+      "Account cannot be deleted because it has transactions.",
+      409
+    );
   }
 
   // Delete the account
