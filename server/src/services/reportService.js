@@ -80,10 +80,15 @@ const getDashboardSummary = async (userId) => {
           },
         },
       },
-      orderBy: {
+    orderBy: [
+      {
         transactionDate: "desc",
       },
-      take: 5,
+      {
+        createdAt: "desc",
+      },
+    ],
+    take: 5,
     }),
   ]);
 

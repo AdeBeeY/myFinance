@@ -93,9 +93,14 @@ const getTransactions = async (
     userId,
   };
 
-  let orderBy = {
-    transactionDate: "desc",
-  };
+  let orderBy = [
+    {
+      transactionDate: "desc",
+    },
+    {
+      createdAt: "desc",
+    },
+  ];
 
   const currentPage = Number(page);
 
@@ -105,9 +110,14 @@ const getTransactions = async (
 
   switch (sort) {
     case "date_asc":
-      orderBy = {
-        transactionDate: "asc",
-      };
+      orderBy = [
+        {
+          transactionDate: "asc",
+        },
+        {
+          createdAt: "asc",
+        },
+      ];
       break;
 
     case "amount_desc":
@@ -124,9 +134,14 @@ const getTransactions = async (
 
     case "date_desc":
     default:
-      orderBy = {
-        transactionDate: "desc",
-      };
+      orderBy = [
+        {
+          transactionDate: "desc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ];
   }
 
   if (type) {
