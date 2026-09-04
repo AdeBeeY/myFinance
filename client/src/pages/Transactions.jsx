@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   createTransaction,
+  deleteTransaction,
   getTransactions,
   updateTransaction,
 } from "../api/transactionApi";
@@ -39,6 +40,10 @@ const Transactions = () => {
 
   // Editing State
   const [editingTransactionId, setEditingTransactionId] =
+    useState(null);
+
+  // Delete State
+  const [deletingTransactionId, setDeletingTransactionId] =
     useState(null);
 
   const user = getCurrentUser();
@@ -157,6 +162,69 @@ const Transactions = () => {
 
       setFormError("");
     };
+
+  // Handle Deleting Transaction
+  const handleDeleteTransaction = async (transactionId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this transaction?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingTransactionId(transactionId);
+      setError("");
+
+      await deleteTransaction(transactionId);
+
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: "10",
+        sort,
+      });
+
+      if (type) {
+        params.set("type", type);
+      }
+
+      if (search.trim()) {
+        params.set("search", search.trim());
+      }
+
+      const response = await getTransactions(
+        params.toString()
+      );
+
+      const {
+        transactions: refreshedTransactions,
+        pagination: refreshedPagination,
+      } = response.data;
+
+      const lastValidPage = Math.max(
+        refreshedPagination.totalPages,
+        1
+      );
+
+      if (
+        refreshedTransactions.length === 0 &&
+        page > lastValidPage
+      ) {
+        setPage(lastValidPage);
+        return;
+      }
+
+      setTransactions(refreshedTransactions);
+      setPagination(refreshedPagination);
+    } catch (err) {
+      setError(
+        err.message || "Unable to delete transaction."
+      );
+    } finally {
+      setDeletingTransactionId(null);
+    }
+  };
 
   // Handle form submission
   const handleSubmitTransaction = async (event) => {
@@ -491,13 +559,28 @@ const Transactions = () => {
                   <p className="mt-2">{transaction.description}</p>
                 )}
 
-                <div className="mt-4">
+                <div className="mt-4 flex gap-2">
                   <button
                     type="button"
                     onClick={() => handleEditTransaction(transaction)}
                     className="rounded border px-3 py-1 text-sm"
                   >
                     Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleDeleteTransaction(transaction.id)
+                    }
+                    disabled={
+                      deletingTransactionId === transaction.id
+                    }
+                    className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {deletingTransactionId === transaction.id
+                      ? "Deleting..."
+                      : "Delete"}
                   </button>
                 </div>
               </div>
