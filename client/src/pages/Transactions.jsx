@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   createTransaction,
   getTransactions,
+  updateTransaction,
 } from "../api/transactionApi";
 import { getAccounts } from "../api/accountApi";
 import { getCategories } from "../api/categoryApi";
@@ -35,6 +36,10 @@ const Transactions = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // Editing State
+  const [editingTransactionId, setEditingTransactionId] =
+    useState(null);
 
   const user = getCurrentUser();
 
@@ -112,22 +117,74 @@ const Transactions = () => {
     }));
   };
 
+  // Handle Editing Transaction
+  const handleEditTransaction = (transaction) => {
+    setEditingTransactionId(transaction.id);
+
+    setFormData({
+      amount: String(transaction.amount),
+      type: transaction.type,
+      description: transaction.description || "",
+      transactionDate: new Date(transaction.transactionDate)
+        .toISOString()
+        .split("T")[0],
+      categoryId: transaction.category?.id || "",
+      accountId: transaction.account?.id || "",
+    });
+
+    setFormError("");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  // Cancel Editing Transaction
+    const handleCancelEdit = () => {
+      setEditingTransactionId(null);
+
+      setFormData({
+        amount: "",
+        type: "EXPENSE",
+        description: "",
+        transactionDate: new Date()
+          .toISOString()
+          .split("T")[0],
+        categoryId: "",
+        accountId: "",
+      });
+
+      setFormError("");
+    };
+
   // Handle form submission
-  const handleCreateTransaction = async (event) => {
+  const handleSubmitTransaction = async (event) => {
     event.preventDefault();
 
     try {
       setSubmitting(true);
       setFormError("");
 
-      await createTransaction({
+      const transactionData = {
         amount: formData.amount,
         type: formData.type,
         description: formData.description,
         transactionDate: formData.transactionDate,
         categoryId: formData.categoryId,
         accountId: formData.accountId,
-      });
+      };
+
+      if (editingTransactionId) {
+        await updateTransaction(
+          editingTransactionId,
+          transactionData
+        );
+      } else {
+        await createTransaction(transactionData);
+      }
+
+      setEditingTransactionId(null);
 
       setFormData({
         amount: "",
@@ -164,7 +221,10 @@ const Transactions = () => {
       setPagination(response.data.pagination);
     } catch (err) {
       setFormError(
-        err.message || "Unable to create transaction."
+        err.message ||
+          (editingTransactionId
+            ? "Unable to update transaction."
+            : "Unable to create transaction.")
       );
     } finally {
       setSubmitting(false);
@@ -192,11 +252,13 @@ const Transactions = () => {
       <h1 className="mb-6 text-2xl font-bold">Transactions</h1>
 
       <form
-        onSubmit={handleCreateTransaction}
+        onSubmit={handleSubmitTransaction}
         className="mb-8 rounded-lg border p-4"
       >
         <h2 className="mb-4 text-lg font-semibold">
-          Add Transaction
+          {editingTransactionId
+            ? "Edit Transaction"
+            : "Add Transaction"}
         </h2>
 
         {formError && (
@@ -326,9 +388,24 @@ const Transactions = () => {
           className="mt-4 rounded border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting
-            ? "Adding..."
-            : "Add Transaction"}
+            ? editingTransactionId
+              ? "Updating..."
+              : "Adding..."
+            : editingTransactionId
+              ? "Update Transaction"
+              : "Add Transaction"}
         </button>
+
+        {editingTransactionId && (
+          <button
+            type="button"
+            onClick={handleCancelEdit}
+            disabled={submitting}
+            className="ml-3 rounded border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        )}
       </form>
 
       {/* Filter Section */}
@@ -413,6 +490,16 @@ const Transactions = () => {
                 {transaction.description && (
                   <p className="mt-2">{transaction.description}</p>
                 )}
+
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => handleEditTransaction(transaction)}
+                    className="rounded border px-3 py-1 text-sm"
+                  >
+                    Edit
+                  </button>
+                </div>
               </div>
             </div>
           ))}
