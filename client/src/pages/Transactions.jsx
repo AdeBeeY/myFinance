@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   createTransaction,
   deleteTransaction,
@@ -10,10 +14,20 @@ import { getCategories } from "../api/categoryApi";
 import { formatCurrency } from "../utils/currency";
 import { getCurrentUser } from "../utils/auth";
 
+const getInitialTransactionFormData = () => ({
+  amount: "",
+  type: "EXPENSE",
+  description: "",
+  transactionDate: new Date().toISOString().split("T")[0],
+  categoryId: "",
+  accountId: "",
+});
+
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
 
@@ -26,14 +40,9 @@ const Transactions = () => {
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  const [formData, setFormData] = useState({
-    amount: "",
-    type: "EXPENSE",
-    description: "",
-    transactionDate: new Date().toISOString().split("T")[0],
-    categoryId: "",
-    accountId: "",
-  });
+  const [formData, setFormData] = useState(
+    getInitialTransactionFormData
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -52,39 +61,53 @@ const Transactions = () => {
     (category) => category.type === formData.type
   );
 
+  // Fetch transactions based on filters
+  const fetchTransactions = useCallback(
+    async (targetPage = page) => {
+      const params = new URLSearchParams({
+        page: String(targetPage),
+        limit: "10",
+        sort,
+      });
+
+      if (type) {
+        params.set("type", type);
+      }
+
+      if (search.trim()) {
+        params.set("search", search.trim());
+      }
+
+      const response = await getTransactions(
+        params.toString()
+      );
+
+      setTransactions(response.data.transactions);
+      setPagination(response.data.pagination);
+
+      return response.data;
+    },
+    [page, type, sort, search]
+  );
+
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const loadTransactions = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const params = new URLSearchParams({
-          page: String(page),
-          limit: "10",
-          sort,
-        });
-
-        if (type) {
-          params.set("type", type);
-        }
-
-        if (search.trim()) {
-          params.set("search", search.trim());
-        }
-
-        const response = await getTransactions(params.toString());
-
-        setTransactions(response.data.transactions);
-        setPagination(response.data.pagination);
+        await fetchTransactions();
       } catch (err) {
-        setError(err.message || "Unable to load transactions.");
+        setError(
+          err.message || "Unable to load transactions."
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTransactions();
-  }, [page, type, sort, search]);
+    loadTransactions();
+  }, [fetchTransactions]);
 
   // Fetch accounts and categories for the transaction form
   useEffect(() => {
@@ -146,22 +169,11 @@ const Transactions = () => {
   };
 
   // Cancel Editing Transaction
-    const handleCancelEdit = () => {
-      setEditingTransactionId(null);
-
-      setFormData({
-        amount: "",
-        type: "EXPENSE",
-        description: "",
-        transactionDate: new Date()
-          .toISOString()
-          .split("T")[0],
-        categoryId: "",
-        accountId: "",
-      });
-
-      setFormError("");
-    };
+  const handleCancelEdit = () => {
+    setEditingTransactionId(null);
+    setFormData(getInitialTransactionFormData());
+    setFormError("");
+  };
 
   // Handle Deleting Transaction
   const handleDeleteTransaction = async (transactionId) => {
@@ -175,32 +187,16 @@ const Transactions = () => {
 
     try {
       setDeletingTransactionId(transactionId);
-      setError("");
+      setActionError("");
 
       await deleteTransaction(transactionId);
 
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: "10",
-        sort,
-      });
-
-      if (type) {
-        params.set("type", type);
-      }
-
-      if (search.trim()) {
-        params.set("search", search.trim());
-      }
-
-      const response = await getTransactions(
-        params.toString()
-      );
+      const refreshedData = await fetchTransactions(page);
 
       const {
         transactions: refreshedTransactions,
         pagination: refreshedPagination,
-      } = response.data;
+      } = refreshedData;
 
       const lastValidPage = Math.max(
         refreshedPagination.totalPages,
@@ -218,7 +214,7 @@ const Transactions = () => {
       setTransactions(refreshedTransactions);
       setPagination(refreshedPagination);
     } catch (err) {
-      setError(
+      setActionError(
         err.message || "Unable to delete transaction."
       );
     } finally {
@@ -253,40 +249,11 @@ const Transactions = () => {
       }
 
       setEditingTransactionId(null);
-
-      setFormData({
-        amount: "",
-        type: "EXPENSE",
-        description: "",
-        transactionDate: new Date()
-          .toISOString()
-          .split("T")[0],
-        categoryId: "",
-        accountId: "",
-      });
+      setFormData(getInitialTransactionFormData());
 
       setPage(1);
 
-      const params = new URLSearchParams({
-        page: "1",
-        limit: "10",
-        sort,
-      });
-
-      if (type) {
-        params.set("type", type);
-      }
-
-      if (search.trim()) {
-        params.set("search", search.trim());
-      }
-
-      const response = await getTransactions(
-        params.toString()
-      );
-
-      setTransactions(response.data.transactions);
-      setPagination(response.data.pagination);
+      await fetchTransactions(1);
     } catch (err) {
       setFormError(
         err.message ||
@@ -516,6 +483,12 @@ const Transactions = () => {
           <option value="amount_asc">Lowest amount</option>
         </select>
       </div>
+
+      {actionError && (
+        <p className="mb-4 text-sm text-red-600">
+          {actionError}
+        </p>
+      )}
 
       {transactions.length === 0 ? (
         <p>No transactions found.</p>
