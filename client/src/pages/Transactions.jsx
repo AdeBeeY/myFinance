@@ -35,6 +35,10 @@ const Transactions = () => {
   const [type, setType] = useState("");
   const [sort, setSort] = useState("date_desc");
   const [search, setSearch] = useState("");
+  const [accountId, setAccountId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Transaction form state
   const [accounts, setAccounts] = useState([]);
@@ -61,6 +65,24 @@ const Transactions = () => {
     (category) => category.type === formData.type
   );
 
+  const filterCategories = type
+    ? categories.filter(
+        (category) => category.type === type
+      )
+    : categories;
+
+  // Clear all active filters
+  const handleClearFilters = () => {
+    setSearch("");
+    setType("");
+    setAccountId("");
+    setCategoryId("");
+    setStartDate("");
+    setEndDate("");
+    setSort("date_desc");
+    setPage(1);
+  };
+
   // Fetch transactions based on filters
   const fetchTransactions = useCallback(
     async (targetPage = page) => {
@@ -72,6 +94,22 @@ const Transactions = () => {
 
       if (type) {
         params.set("type", type);
+      }
+
+      if (accountId) {
+        params.set("accountId", accountId);
+      }
+
+      if (categoryId) {
+        params.set("categoryId", categoryId);
+      }
+
+      if (startDate) {
+        params.set("startDate", startDate);
+      }
+
+      if (endDate) {
+        params.set("endDate", endDate);
       }
 
       if (search.trim()) {
@@ -87,7 +125,16 @@ const Transactions = () => {
 
       return response.data;
     },
-    [page, type, sort, search]
+    [
+      page,
+      type,
+      sort,
+      search,
+      accountId,
+      categoryId,
+      startDate,
+      endDate,
+    ]
   );
 
   useEffect(() => {
@@ -132,7 +179,7 @@ const Transactions = () => {
     fetchFormOptions();
   }, []);
 
-  // Handle form-change 
+  // Handle form change
   const handleFormChange = (event) => {
     const { name, value } = event.target;
 
@@ -444,7 +491,7 @@ const Transactions = () => {
       </form>
 
       {/* Filter Section */}
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+      <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <input
           type="text"
           value={search}
@@ -460,6 +507,7 @@ const Transactions = () => {
           value={type}
           onChange={(event) => {
             setType(event.target.value);
+            setCategoryId("");
             setPage(1);
           }}
           className="rounded border px-3 py-2"
@@ -467,6 +515,26 @@ const Transactions = () => {
           <option value="">All types</option>
           <option value="INCOME">Income</option>
           <option value="EXPENSE">Expense</option>
+        </select>
+
+        <select
+          value={categoryId}
+          onChange={(event) => {
+            setCategoryId(event.target.value);
+            setPage(1);
+          }}
+          className="rounded border px-3 py-2"
+        >
+          <option value="">All categories</option>
+
+          {filterCategories.map((category) => (
+            <option
+              key={category.id}
+              value={category.id}
+            >
+              {category.name}
+            </option>
+          ))}
         </select>
 
         <select
@@ -482,6 +550,70 @@ const Transactions = () => {
           <option value="amount_desc">Highest amount</option>
           <option value="amount_asc">Lowest amount</option>
         </select>
+
+        <select
+          value={accountId}
+          onChange={(event) => {
+            setAccountId(event.target.value);
+            setPage(1);
+          }}
+          className="rounded border px-3 py-2"
+        >
+          <option value="">All accounts</option>
+
+          {accounts.map((account) => (
+            <option
+              key={account.id}
+              value={account.id}
+            >
+              {account.name}
+            </option>
+          ))}
+        </select>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            From
+          </label>
+
+          <input
+            type="date"
+            value={startDate}
+            onChange={(event) => {
+              setStartDate(event.target.value);
+              setPage(1);
+            }}
+            max={endDate || undefined}
+            className="w-full rounded border px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            To
+          </label>
+
+          <input
+            type="date"
+            value={endDate}
+            onChange={(event) => {
+              setEndDate(event.target.value);
+              setPage(1);
+            }}
+            min={startDate || undefined}
+            className="w-full rounded border px-3 py-2"
+          />
+        </div>
+
+        <div className="flex items-end">
+          <button
+            type="button"
+            onClick={handleClearFilters}
+            className="w-full rounded border px-4 py-2"
+          >
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       {actionError && (
