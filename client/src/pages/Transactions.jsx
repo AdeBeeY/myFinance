@@ -3,6 +3,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { Link } from "react-router-dom";
 import {
   createTransaction,
   deleteTransaction,
@@ -808,11 +809,18 @@ const Transactions = () => {
                 </p>
               )}
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  to={`/transactions/${transaction.id}`}
+                  className="rounded border px-3 py-2 text-sm"
+                >
+                  View Details
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => handleEditTransaction(transaction)}
-                  className="rounded border px-3 py-1 text-sm"
+                  className="rounded border px-3 py-2 text-sm"
                 >
                   Edit
                 </button>
@@ -825,7 +833,7 @@ const Transactions = () => {
                   disabled={
                     deletingTransactionId === transaction.id
                   }
-                  className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {deletingTransactionId === transaction.id
                     ? "Deleting..."
