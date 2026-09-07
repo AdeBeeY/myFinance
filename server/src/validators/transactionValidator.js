@@ -125,6 +125,24 @@ const transactionQueryValidator = [
     ])
     .withMessage("Invalid sort option."),
 
+  query("accountId")
+    .optional()
+    .isUUID()
+    .withMessage("Account ID must be a valid UUID"),
+
+  query("categoryId")
+    .optional()
+    .isUUID()
+    .withMessage("Category ID must be a valid UUID"),
+
+  query("search")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage(
+      "Search must not exceed 100 characters"
+    ),
+
   query("minAmount")
     .optional()
     .isFloat({ min: 0 })
@@ -133,7 +151,21 @@ const transactionQueryValidator = [
   query("maxAmount")
     .optional()
     .isFloat({ min: 0 })
-    .withMessage("Maximum amount must be a positive number."),
+    .withMessage(
+      "Maximum amount must be a positive number."
+    )
+    .custom((maxAmount, { req }) => {
+      if (
+        req.query.minAmount !== undefined &&
+        Number(req.query.minAmount) > Number(maxAmount)
+      ) {
+        throw new Error(
+          "Minimum amount cannot be greater than maximum amount"
+        );
+      }
+
+      return true;
+  }),
 
   query("startDate")
     .optional()
@@ -143,7 +175,22 @@ const transactionQueryValidator = [
   query("endDate")
     .optional()
     .isISO8601()
-    .withMessage("End date must be a valid date."),
+    .withMessage(
+      "End date must be a valid date."
+    )
+    .custom((endDate, { req }) => {
+      if (
+        req.query.startDate &&
+        new Date(req.query.startDate) >
+          new Date(endDate)
+      ) {
+        throw new Error(
+          "Start date cannot be after end date"
+        );
+      }
+
+      return true;
+    }),
 ];
 
 module.exports = {
