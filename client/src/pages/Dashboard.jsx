@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
-import { getDashboardSummary } from "../api/reportApi";
+import {
+  getDashboardSummary,
+  getExpenseBreakdown,
+  getFinancialHealth,
+} from "../api/reportApi";
+import { getAccounts } from "../api/accountApi";
 import SummaryCards from "../components/dashboard/SummaryCards";
+import AccountBalances from "../components/dashboard/AccountBalances";
+import FinancialHealth from "../components/dashboard/FinancialHealth";
+import ExpenseBreakdown from "../components/dashboard/ExpenseBreakdown";
 import RecentTransactions from "../components/dashboard/RecentTransactions";
-import { getCurrentUser } from "../utils/auth";
-import { logout } from "../utils/auth";
+import {
+  getCurrentUser,
+  logout,
+} from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
@@ -11,6 +21,9 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const [dashboard, setDashboard] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [financialHealth, setFinancialHealth] = useState(null);
+  const [expenseBreakdown, setExpenseBreakdown] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -24,9 +37,22 @@ function Dashboard() {
       try {
         setError("");
 
-        const response = await getDashboardSummary();
+        const [
+          dashboardResponse,
+          accountsResponse,
+          financialHealthResponse,
+          expenseBreakdownResponse,
+        ] = await Promise.all([
+          getDashboardSummary(),
+          getAccounts(),
+          getFinancialHealth(),
+          getExpenseBreakdown(),
+        ]);
 
-        setDashboard(response.data);
+        setDashboard(dashboardResponse.data);
+        setAccounts(accountsResponse.data);
+        setFinancialHealth(financialHealthResponse.data);
+        setExpenseBreakdown(expenseBreakdownResponse.data);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -58,6 +84,23 @@ function Dashboard() {
 
       <SummaryCards
         summary={dashboard.summary}
+        currency={user?.currency}
+      />
+
+      <AccountBalances
+        accounts={accounts}
+        currency={user?.currency}
+      />
+
+      {financialHealth && (
+        <FinancialHealth
+          health={financialHealth}
+          currency={user?.currency}
+        />
+      )}
+
+      <ExpenseBreakdown
+        expenses={expenseBreakdown}
         currency={user?.currency}
       />
 
