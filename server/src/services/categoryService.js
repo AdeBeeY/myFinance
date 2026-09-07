@@ -71,7 +71,32 @@ const updateCategory = async (
   { name, type, description }
 ) => {
   // Ensure the category exists and belongs to the user
-  await getCategoryById(userId, categoryId);
+  const currentCategory = await getCategoryById(
+    userId,
+    categoryId
+  );
+
+  // Prevent changing the type of a category
+  // that is already used by transactions
+  if (
+    type !== undefined &&
+    type !== currentCategory.type
+  ) {
+    const transactionCount =
+      await prisma.transaction.count({
+        where: {
+          categoryId,
+          userId,
+        },
+      });
+
+    if (transactionCount > 0) {
+      throw new AppError(
+        "Cannot change the type of a category that is used by transactions.",
+        409
+      );
+    }
+  }
 
   // Check for another category with the same name and type
   const existingCategory = await prisma.category.findFirst({
@@ -108,7 +133,23 @@ const deleteCategory = async (userId, categoryId) => {
   // Ensure the category exists and belongs to the user
   await getCategoryById(userId, categoryId);
 
-  // Delete the category
+  // Protect categories that are already used
+  // by financial transactions
+  const transactionCount =
+    await prisma.transaction.count({
+      where: {
+        categoryId,
+        userId,
+      },
+    });
+
+  if (transactionCount > 0) {
+    throw new AppError(
+      "Cannot delete a category that has transactions.",
+      409
+    );
+  }
+
   await prisma.category.delete({
     where: {
       id: categoryId,

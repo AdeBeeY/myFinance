@@ -6,6 +6,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Accounts from "./pages/Accounts";
 import Transactions from "./pages/Transactions";
 import TransactionDetails from "./pages/TransactionDetails";
+import Categories from "./pages/Categories";
+import AppLayout from "./layouts/AppLayout";
 
 function App() {
   return (
@@ -18,7 +20,10 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+              
             </ProtectedRoute>
           }
         />
@@ -27,7 +32,20 @@ function App() {
           path="/accounts"
           element={
             <ProtectedRoute>
-              <Accounts />
+              <AppLayout>
+                <Accounts />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/categories"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Categories />
+              </AppLayout>
             </ProtectedRoute>
           }
         />
@@ -36,7 +54,9 @@ function App() {
           path="/transactions"
           element={
             <ProtectedRoute>
-              <Transactions />
+              <AppLayout>
+                <Transactions />
+              </AppLayout>
             </ProtectedRoute>
           }
         />
@@ -45,7 +65,9 @@ function App() {
           path="/transactions/:transactionId"
           element={
             <ProtectedRoute>
-              <TransactionDetails />
+              <AppLayout>
+                <TransactionDetails />
+              </AppLayout>
             </ProtectedRoute>
           }
         />
