@@ -31,6 +31,9 @@ const Transactions = () => {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
 
+  // Form Visibility State
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
   // Filter state
   const [type, setType] = useState("");
   const [sort, setSort] = useState("date_desc");
@@ -70,6 +73,57 @@ const Transactions = () => {
         (category) => category.type === type
       )
     : categories;
+
+  const hasActiveFilters =
+    search.trim() !== "" ||
+    type !== "" ||
+    accountId !== "" ||
+    categoryId !== "" ||
+    startDate !== "" ||
+    endDate !== "";
+
+  // Active filter labels summary
+  const activeFilterLabels = [];
+
+  if (search.trim()) {
+    activeFilterLabels.push(`Search: "${search.trim()}"`);
+  }
+
+  if (type) {
+    activeFilterLabels.push(`Type: ${type}`);
+  }
+
+  if (accountId) {
+    const selectedAccount = accounts.find(
+      (account) => account.id === accountId
+    );
+
+    if (selectedAccount) {
+      activeFilterLabels.push(
+        `Account: ${selectedAccount.name}`
+      );
+    }
+  }
+
+  if (categoryId) {
+    const selectedCategory = categories.find(
+      (category) => category.id === categoryId
+    );
+
+    if (selectedCategory) {
+      activeFilterLabels.push(
+        `Category: ${selectedCategory.name}`
+      );
+    }
+  }
+
+  if (startDate) {
+    activeFilterLabels.push(`From: ${startDate}`);
+  }
+
+  if (endDate) {
+    activeFilterLabels.push(`To: ${endDate}`);
+  }
 
   // Clear all active filters
   const handleClearFilters = () => {
@@ -195,6 +249,7 @@ const Transactions = () => {
   // Handle Editing Transaction
   const handleEditTransaction = (transaction) => {
     setEditingTransactionId(transaction.id);
+    setIsFormOpen(true);
 
     setFormData({
       amount: String(transaction.amount),
@@ -215,9 +270,10 @@ const Transactions = () => {
     });
   };
 
-  // Cancel Editing Transaction
+  // Cancel Editing/Creating Transaction
   const handleCancelEdit = () => {
     setEditingTransactionId(null);
+    setIsFormOpen(false);
     setFormData(getInitialTransactionFormData());
     setFormError("");
   };
@@ -297,6 +353,7 @@ const Transactions = () => {
 
       setEditingTransactionId(null);
       setFormData(getInitialTransactionFormData());
+      setIsFormOpen(false);
 
       setPage(1);
 
@@ -333,152 +390,167 @@ const Transactions = () => {
     <div className="p-6">
       <h1 className="mb-6 text-2xl font-bold">Transactions</h1>
 
-      <form
-        onSubmit={handleSubmitTransaction}
-        className="mb-8 rounded-lg border p-4"
-      >
-        <h2 className="mb-4 text-lg font-semibold">
-          {editingTransactionId
-            ? "Edit Transaction"
-            : "Add Transaction"}
-        </h2>
-
-        {formError && (
-          <p className="mb-4 text-sm text-red-600">
-            {formError}
-          </p>
-        )}
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Type
-            </label>
-
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleFormChange}
-              className="w-full rounded border px-3 py-2"
-            >
-              <option value="INCOME">Income</option>
-              <option value="EXPENSE">Expense</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Amount
-            </label>
-
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleFormChange}
-              min="0.01"
-              step="0.01"
-              required
-              className="w-full rounded border px-3 py-2"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Account
-            </label>
-
-            <select
-              name="accountId"
-              value={formData.accountId}
-              onChange={handleFormChange}
-              required
-              className="w-full rounded border px-3 py-2"
-            >
-              <option value="">Select account</option>
-
-              {accounts.map((account) => (
-                <option
-                  key={account.id}
-                  value={account.id}
-                >
-                  {account.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Category
-            </label>
-
-            <select
-              name="categoryId"
-              value={formData.categoryId}
-              onChange={handleFormChange}
-              required
-              className="w-full rounded border px-3 py-2"
-            >
-              <option value="">Select category</option>
-
-              {filteredCategories.map((category) => (
-                <option
-                  key={category.id}
-                  value={category.id}
-                >
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Date
-            </label>
-
-            <input
-              type="date"
-              name="transactionDate"
-              value={formData.transactionDate}
-              onChange={handleFormChange}
-              required
-              className="w-full rounded border px-3 py-2"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Description
-            </label>
-
-            <input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleFormChange}
-              maxLength="191"
-              className="w-full rounded border px-3 py-2"
-            />
-          </div>
-        </div>
-
+      {!isFormOpen && (
         <button
-          type="submit"
-          disabled={submitting}
-          className="mt-4 rounded border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+          type="button"
+          onClick={() => {
+            setEditingTransactionId(null);
+            setFormData(getInitialTransactionFormData());
+            setFormError("");
+            setIsFormOpen(true);
+          }}
+          className="mb-6 rounded border px-4 py-2"
         >
-          {submitting
-            ? editingTransactionId
-              ? "Updating..."
-              : "Adding..."
-            : editingTransactionId
-              ? "Update Transaction"
-              : "Add Transaction"}
+          + Add Transaction
         </button>
+      )}
 
-        {editingTransactionId && (
+      {isFormOpen && (
+        <form
+          onSubmit={handleSubmitTransaction}
+          className="mb-8 rounded-lg border p-4"
+        >
+          <h2 className="mb-4 text-lg font-semibold">
+            {editingTransactionId
+              ? "Edit Transaction"
+              : "Add Transaction"}
+          </h2>
+
+          {formError && (
+            <p className="mb-4 text-sm text-red-600">
+              {formError}
+            </p>
+          )}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Type
+              </label>
+
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleFormChange}
+                className="w-full rounded border px-3 py-2"
+              >
+                <option value="INCOME">Income</option>
+                <option value="EXPENSE">Expense</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Amount
+              </label>
+
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleFormChange}
+                min="0.01"
+                step="0.01"
+                required
+                className="w-full rounded border px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Account
+              </label>
+
+              <select
+                name="accountId"
+                value={formData.accountId}
+                onChange={handleFormChange}
+                required
+                className="w-full rounded border px-3 py-2"
+              >
+                <option value="">Select account</option>
+
+                {accounts.map((account) => (
+                  <option
+                    key={account.id}
+                    value={account.id}
+                  >
+                    {account.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Category
+              </label>
+
+              <select
+                name="categoryId"
+                value={formData.categoryId}
+                onChange={handleFormChange}
+                required
+                className="w-full rounded border px-3 py-2"
+              >
+                <option value="">Select category</option>
+
+                {filteredCategories.map((category) => (
+                  <option
+                    key={category.id}
+                    value={category.id}
+                  >
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Date
+              </label>
+
+              <input
+                type="date"
+                name="transactionDate"
+                value={formData.transactionDate}
+                onChange={handleFormChange}
+                required
+                className="w-full rounded border px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Description
+              </label>
+
+              <input
+                type="text"
+                name="description"
+                value={formData.description}
+                onChange={handleFormChange}
+                maxLength="191"
+                className="w-full rounded border px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-4 rounded border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {submitting
+              ? editingTransactionId
+                ? "Updating..."
+                : "Adding..."
+              : editingTransactionId
+                ? "Update Transaction"
+                : "Add Transaction"}
+          </button>
+
           <button
             type="button"
             onClick={handleCancelEdit}
@@ -487,8 +559,8 @@ const Transactions = () => {
           >
             Cancel
           </button>
-        )}
-      </form>
+        </form>
+      )}
 
       {/* Filter Section */}
       <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -616,6 +688,27 @@ const Transactions = () => {
         </div>
       </div>
 
+      {activeFilterLabels.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {activeFilterLabels.map((label) => (
+            <span
+              key={label}
+              className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {pagination && (
+        <p className="mb-4 text-sm text-gray-600">
+          {pagination.total === 1
+            ? "1 transaction found"
+            : `${pagination.total} transactions found`}
+        </p>
+      )}
+
       {actionError && (
         <p className="mb-4 text-sm text-red-600">
           {actionError}
@@ -623,13 +716,43 @@ const Transactions = () => {
       )}
 
       {transactions.length === 0 ? (
-        <p>No transactions found.</p>
+        <div className="rounded-lg border p-6 text-center">
+          {hasActiveFilters ? (
+            <>
+              <h2 className="font-semibold">
+                No matching transactions
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-600">
+                Try changing or clearing your filters.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="mt-4 rounded border px-4 py-2 text-sm"
+              >
+                Clear Filters
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="font-semibold">
+                No transactions yet
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-600">
+                Add your first transaction using the form above.
+              </p>
+            </>
+          )}
+        </div>
       ) : (
         <div className="space-y-4">
           {transactions.map((transaction) => (
             <div
               key={transaction.id}
-              className="rounded-lg border p-4"
+              className="rounded-lg border bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -642,7 +765,14 @@ const Transactions = () => {
                   </p>
                 </div>
 
-                <p className="font-semibold">
+                <p
+                  className={`font-semibold ${
+                    transaction.type === "INCOME"
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {transaction.type === "INCOME" ? "+" : "-"}
                   {formatCurrency(
                     transaction.amount,
                     user?.currency
@@ -650,44 +780,57 @@ const Transactions = () => {
                 </p>
               </div>
 
-              <div className="mt-3 text-sm">
-                <p>Type: {transaction.type}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                <span
+                  className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                    transaction.type === "INCOME"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {transaction.type}
+                </span>
 
-                <p>
-                  Date:{" "}
+                <p className="text-gray-600">
                   {new Date(
                     transaction.transactionDate
-                  ).toLocaleDateString()}
+                  ).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </p>
+              </div>
 
-                {transaction.description && (
-                  <p className="mt-2">{transaction.description}</p>
-                )}
+              {transaction.description && (
+                <p className="mt-3 text-sm text-gray-700">
+                  {transaction.description}
+                </p>
+              )}
 
-                <div className="mt-4 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleEditTransaction(transaction)}
-                    className="rounded border px-3 py-1 text-sm"
-                  >
-                    Edit
-                  </button>
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleEditTransaction(transaction)}
+                  className="rounded border px-3 py-1 text-sm"
+                >
+                  Edit
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDeleteTransaction(transaction.id)
-                    }
-                    disabled={
-                      deletingTransactionId === transaction.id
-                    }
-                    className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {deletingTransactionId === transaction.id
-                      ? "Deleting..."
-                      : "Delete"}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDeleteTransaction(transaction.id)
+                  }
+                  disabled={
+                    deletingTransactionId === transaction.id
+                  }
+                  className="rounded border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {deletingTransactionId === transaction.id
+                    ? "Deleting..."
+                    : "Delete"}
+                </button>
               </div>
             </div>
           ))}
