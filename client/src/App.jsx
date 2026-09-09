@@ -8,6 +8,7 @@ import Transactions from "./pages/Transactions";
 import TransactionDetails from "./pages/TransactionDetails";
 import Categories from "./pages/Categories";
 import AppLayout from "./layouts/AppLayout";
+import Reports from "./pages/Reports";
 
 function App() {
   return (
@@ -56,6 +57,17 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <Transactions />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Reports />
               </AppLayout>
             </ProtectedRoute>
           }

@@ -118,7 +118,10 @@ const getMonthlyReport = async (userId, year, month) => {
     },
   };
 
-  const [{ income, expense }, transactionCount] = await Promise.all([
+  const [
+    { totalIncome, totalExpense },
+    transactionCount,
+  ] = await Promise.all([
     getIncomeExpenseTotals(userId, dateFilter),
 
     prisma.transaction.count({
@@ -129,13 +132,13 @@ const getMonthlyReport = async (userId, year, month) => {
     }),
   ]);
 
-  const balance = income - expense;
+  const balance = totalIncome - totalExpense;
 
   return {
     year: Number(year),
     month: Number(month),
-    income,
-    expense,
+    income: totalIncome,
+    expense: totalExpense,
     balance,
     transactionCount,
   };
@@ -229,8 +232,10 @@ const getDateRangeReport = async (
 
   end.setDate(end.getDate() + 1);
 
-  const { income, expense } =
-  await getIncomeExpenseTotals(userId, {
+  const {
+    totalIncome,
+    totalExpense,
+  } = await getIncomeExpenseTotals(userId, {
     transactionDate: {
       gte: start,
       lt: end,
@@ -238,23 +243,24 @@ const getDateRangeReport = async (
   });
 
   const transactionCount =
-  await prisma.transaction.count({
-    where: {
-      userId,
-      transactionDate: {
-        gte: start,
-        lt: end,
+    await prisma.transaction.count({
+      where: {
+        userId,
+        transactionDate: {
+          gte: start,
+          lt: end,
+        },
       },
-    },
-  });
+    });
 
-  const balance = income - expense;
+  const balance =
+    totalIncome - totalExpense;
 
   return {
     startDate,
     endDate,
-    income,
-    expense,
+    income: totalIncome,
+    expense: totalExpense,
     balance,
     transactionCount,
   };

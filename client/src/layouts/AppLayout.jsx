@@ -39,6 +39,13 @@ function AppLayout({ children }) {
           >
             Transactions
           </NavLink>
+
+          <NavLink
+            to="/reports"
+            className={navLinkClass}
+          >
+            Reports
+          </NavLink>
         </div>
       </nav>
 
