@@ -164,6 +164,16 @@ const calculateUserTaxForYear = async (
   );
 };
 
+const getTaxSummary = async (
+  userId,
+  year
+) => {
+  return calculateUserTaxForYear(
+    userId,
+    year
+  );
+};
+
 
 module.exports = {
   getTaxSettings,
@@ -172,4 +182,5 @@ module.exports = {
   calculateTaxForYear,
   getTaxSettingForYear,
   calculateUserTaxForYear,
+  getTaxSummary,
 };

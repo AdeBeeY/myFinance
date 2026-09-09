@@ -8,12 +8,14 @@ const validationMiddleware = require("../middlewares/validationMiddleware");
 const {
   taxSettingValidator,
   taxCalculationValidator,
+  taxSummaryValidator,
 } = require("../validators/taxValidator");
 
 const {
   getSettings,
   updateSettings,
   calculateTax,
+  getSummary,
 } = require("../controllers/taxController");
 
 router.get(
@@ -36,6 +38,14 @@ router.post(
   taxCalculationValidator,
   validationMiddleware,
   calculateTax
+);
+
+router.get(
+  "/summary",
+  authenticate,
+  taxSummaryValidator,
+  validationMiddleware,
+  getSummary
 );
 
 module.exports = router;
