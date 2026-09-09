@@ -20,32 +20,33 @@ enum Currency {
 }
 
 model User {
-  id           String         @id @default(uuid())
-  firstName    String
-  lastName     String
-  email        String         @unique
-  password     String
-  currency     Currency       @default(NGN)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  currency  Currency @default(NGN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   transactions Transaction[]
   accounts     Account[]
   categories   Category[]
+  taxSettings  TaxSetting[]
 }
 
 model Category {
-  id          String @id @default(uuid())
+  id String @id @default(uuid())
 
-  name        String
+  name String
 
-  type        TransactionType
+  type TransactionType
 
   description String?
 
-  userId      String
+  userId String
 
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions Transaction[]
 
@@ -56,47 +57,62 @@ model Category {
 }
 
 model Account {
-  id           String         @id @default(uuid())
-  name         String
-  description  String?
+  id          String  @id @default(uuid())
+  name        String
+  description String?
 
-  userId       String
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions Transaction[]
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, name])
 }
 
 model Transaction {
-  id           String           @id @default(uuid())
+  id String @id @default(uuid())
 
-  amount       Decimal          @db.Decimal(15,2)
+  amount Decimal @db.Decimal(15, 2)
 
-  type         TransactionType
+  type TransactionType
 
-  description  String?
+  description String?
 
   transactionDate DateTime
 
-  userId       String
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  categoryId   String
-  category     Category         @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
-  accountId    String
-  account      Account          @relation(fields: [accountId], references: [id])
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
 
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([categoryId])
   @@index([accountId])
   @@index([transactionDate])
   @@index([type])
+}
+
+model TaxSetting {
+  id      String  @id @default(uuid())
+  year    Int
+  taxRate Decimal @db.Decimal(5, 2)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, year])
+  @@index([userId])
 }

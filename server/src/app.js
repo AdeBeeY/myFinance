@@ -7,6 +7,7 @@ const accountRoutes = require("./routes/accountRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const errorHandler = require("./middlewares/errorHandler");
+const taxRoutes = require("./routes/taxRoutes");
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/accounts", accountRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/tax", taxRoutes);
 
 app.use(errorHandler);
 
