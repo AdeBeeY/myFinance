@@ -15,6 +15,8 @@ import {
   logout,
 } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
+import { getTaxSummary } from "../api/taxApi";
+import EstimatedTax from "../components/dashboard/EstimatedTax";
 
 function Dashboard() {
   const user = getCurrentUser();
@@ -26,6 +28,8 @@ function Dashboard() {
   const [expenseBreakdown, setExpenseBreakdown] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [taxSummary, setTaxSummary] = useState(null);
+  const [taxError, setTaxError] = useState("");
 
   const handleLogout = () => {
     logout();
@@ -36,6 +40,8 @@ function Dashboard() {
     const fetchDashboard = async () => {
       try {
         setError("");
+
+        const currentYear = new Date().getFullYear();
 
         const [
           dashboardResponse,
@@ -53,6 +59,26 @@ function Dashboard() {
         setAccounts(accountsResponse.data);
         setFinancialHealth(financialHealthResponse.data);
         setExpenseBreakdown(expenseBreakdownResponse.data);
+
+      try {
+        setTaxError("");
+
+        const taxResponse =
+          await getTaxSummary(currentYear);
+
+        setTaxSummary(taxResponse.data);
+      } catch (error) {
+        setTaxSummary(null);
+
+        if (error.status === 404) {
+          setTaxError("");
+        } else {
+          setTaxError(
+            error.message ||
+              "Failed to load estimated tax"
+          );
+        }
+      }
       } catch (error) {
         setError(error.message);
       } finally {
@@ -85,6 +111,13 @@ function Dashboard() {
       <SummaryCards
         summary={dashboard.summary}
         currency={user?.currency}
+      />
+
+      <EstimatedTax
+        taxSummary={taxSummary}
+        taxError={taxError}
+        currency={user?.currency}
+        year={new Date().getFullYear()}
       />
 
       <AccountBalances
