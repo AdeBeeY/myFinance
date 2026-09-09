@@ -3,6 +3,7 @@ const apiResponse = require("../helpers/apiResponse");
 const {
   getTaxSettings,
   upsertTaxSetting,
+  calculateUserTaxForYear,
 } = require("../services/taxService");
 
 const getSettings = asyncHandler(async (req, res) => {
@@ -35,7 +36,36 @@ const updateSettings = asyncHandler(async (req, res) => {
   );
 });
 
+const calculateTax = asyncHandler(async (req, res) => {
+  const { year } = req.body;
+
+  const calculation =
+    await calculateUserTaxForYear(
+      req.user.id,
+      year
+    );
+
+  if (!calculation) {
+    return res.status(404).json(
+      apiResponse(
+        false,
+        `No tax setting found for ${year}`,
+        null
+      )
+    );
+  }
+
+  return res.status(200).json(
+    apiResponse(
+      true,
+      "Tax calculated successfully",
+      calculation
+    )
+  );
+});
+
 module.exports = {
   getSettings,
   updateSettings,
+  calculateTax,
 };

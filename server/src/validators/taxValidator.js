@@ -16,6 +16,16 @@ const taxSettingValidator = [
     .toFloat(),
 ];
 
+const taxCalculationValidator = [
+  body("year")
+    .notEmpty()
+    .withMessage("Tax year is required")
+    .isInt({ min: 2000, max: 2100 })
+    .withMessage("Tax year must be between 2000 and 2100")
+    .toInt(),
+];
+
 module.exports = {
   taxSettingValidator,
+  taxCalculationValidator,
 };
