@@ -9,6 +9,7 @@ import TransactionDetails from "./pages/TransactionDetails";
 import Categories from "./pages/Categories";
 import AppLayout from "./layouts/AppLayout";
 import Reports from "./pages/Reports";
+import TaxCalculator from "./pages/TaxCalculator";
 
 function App() {
   return (
@@ -80,6 +81,15 @@ function App() {
               <AppLayout>
                 <TransactionDetails />
               </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tax"
+          element={
+            <ProtectedRoute>
+              <TaxCalculator />
             </ProtectedRoute>
           }
         />
