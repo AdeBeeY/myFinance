@@ -157,6 +157,72 @@ const createSecondUser = async () => {
   };
 };
 
+const createTransaction = async ({
+  amount,
+  type,
+  description,
+  transactionDate,
+  categoryId,
+  targetAccountId = accountId,
+}) => {
+  const response = await request(app)
+    .post("/api/transactions")
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      amount,
+      type,
+      description,
+      transactionDate,
+      categoryId,
+      accountId: targetAccountId,
+    });
+
+  expect(response.status).toBe(201);
+
+  return response.body.data;
+};
+
+const createQueryTestTransactions = async () => {
+  const salary = await createTransaction({
+    amount: 200000,
+    type: "INCOME",
+    description: "September salary",
+    transactionDate: "2026-09-01",
+    categoryId: incomeCategoryId,
+  });
+
+  const groceries = await createTransaction({
+    amount: 25000,
+    type: "EXPENSE",
+    description: "Weekly groceries",
+    transactionDate: "2026-09-05",
+    categoryId: expenseCategoryId,
+  });
+
+  const restaurant = await createTransaction({
+    amount: 12000,
+    type: "EXPENSE",
+    description: "Restaurant dinner",
+    transactionDate: "2026-09-10",
+    categoryId: expenseCategoryId,
+  });
+
+  const bonus = await createTransaction({
+    amount: 50000,
+    type: "INCOME",
+    description: "Project bonus",
+    transactionDate: "2026-09-15",
+    categoryId: incomeCategoryId,
+  });
+
+  return {
+    salary,
+    groceries,
+    restaurant,
+    bonus,
+  };
+};
+
 describe("Transactions API", () => {
   beforeEach(async () => {
     await cleanupTestUsers();
@@ -633,5 +699,481 @@ describe("Transactions API", () => {
       success: false,
       message: "Category not found.",
     });
+  });
+
+  test("filters transactions by type", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?type=INCOME")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.transactions)
+      .toHaveLength(2);
+
+    expect(
+      response.body.data.transactions.every(
+        (transaction) =>
+          transaction.type === "INCOME"
+      )
+    ).toBe(true);
+  });
+
+  test("filters transactions by category", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get(
+        `/api/transactions?categoryId=${expenseCategoryId}`
+      )
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.transactions)
+      .toHaveLength(2);
+
+    expect(
+      response.body.data.transactions.every(
+        (transaction) =>
+          transaction.category.id ===
+          expenseCategoryId
+      )
+    ).toBe(true);
+  });
+
+  test("filters transactions by date range", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get(
+        "/api/transactions?startDate=2026-09-05&endDate=2026-09-10"
+      )
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    const descriptions =
+      response.body.data.transactions.map(
+        (transaction) =>
+          transaction.description
+      );
+
+    expect(descriptions).toEqual([
+      "Restaurant dinner",
+      "Weekly groceries",
+    ]);
+  });
+
+  test("filters transactions by amount range", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get(
+        "/api/transactions?minAmount=20000&maxAmount=60000"
+      )
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    const descriptions =
+      response.body.data.transactions.map(
+        (transaction) =>
+          transaction.description
+      );
+
+    expect(descriptions).toEqual([
+      "Project bonus",
+      "Weekly groceries",
+    ]);
+  });
+
+  test("searches transactions by description", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?search=groceries")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.transactions)
+      .toHaveLength(1);
+
+    expect(
+      response.body.data.transactions[0]
+        .description
+    ).toBe("Weekly groceries");
+  });
+
+  test("filters transactions by account", async () => {
+    const secondAccountResponse = await request(app)
+      .post("/api/accounts")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        name: "Savings Account",
+        description: "Secondary test account",
+      });
+
+    const secondAccountId =
+      secondAccountResponse.body.data.id;
+
+    await createQueryTestTransactions();
+
+    await createTransaction({
+      amount: 75000,
+      type: "INCOME",
+      description: "Savings deposit",
+      transactionDate: "2026-09-20",
+      categoryId: incomeCategoryId,
+      targetAccountId: secondAccountId,
+    });
+
+    const response = await request(app)
+      .get(
+        `/api/transactions?accountId=${secondAccountId}`
+      )
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.transactions)
+      .toHaveLength(1);
+
+    expect(
+      response.body.data.transactions[0]
+        .description
+    ).toBe("Savings deposit");
+
+    expect(
+      response.body.data.transactions[0]
+        .account.id
+    ).toBe(secondAccountId);
+  });
+
+  test("sorts transactions by date descending", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?sort=date_desc")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    const descriptions =
+      response.body.data.transactions.map(
+        (transaction) =>
+          transaction.description
+      );
+
+    expect(descriptions).toEqual([
+      "Project bonus",
+      "Restaurant dinner",
+      "Weekly groceries",
+      "September salary",
+    ]);
+  });
+
+  test("sorts transactions by date ascending", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?sort=date_asc")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    const descriptions =
+      response.body.data.transactions.map(
+        (transaction) =>
+          transaction.description
+      );
+
+    expect(descriptions).toEqual([
+      "September salary",
+      "Weekly groceries",
+      "Restaurant dinner",
+      "Project bonus",
+    ]);
+  });
+
+  test("sorts transactions by amount descending", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?sort=amount_desc")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    const amounts =
+      response.body.data.transactions.map(
+        (transaction) =>
+          Number(transaction.amount)
+      );
+
+    expect(amounts).toEqual([
+      200000,
+      50000,
+      25000,
+      12000,
+    ]);
+  });
+
+  test("sorts transactions by amount ascending", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?sort=amount_asc")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    const amounts =
+      response.body.data.transactions.map(
+        (transaction) =>
+          Number(transaction.amount)
+      );
+
+    expect(amounts).toEqual([
+      12000,
+      25000,
+      50000,
+      200000,
+    ]);
+  });
+
+  test("paginates transactions with the requested page and limit", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?page=1&limit=2")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.transactions)
+      .toHaveLength(2);
+
+    const descriptions =
+      response.body.data.transactions.map(
+        (transaction) =>
+          transaction.description
+      );
+
+    expect(descriptions).toEqual([
+      "Project bonus",
+      "Restaurant dinner",
+    ]);
+
+    expect(response.body.data.pagination).toEqual({
+      page: 1,
+      limit: 2,
+      total: 4,
+      totalPages: 2,
+    });
+  });
+
+  test("retrieves the correct second page of transactions", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?page=2&limit=2")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.transactions)
+      .toHaveLength(2);
+
+    const descriptions =
+      response.body.data.transactions.map(
+        (transaction) =>
+          transaction.description
+      );
+
+    expect(descriptions).toEqual([
+      "Weekly groceries",
+      "September salary",
+    ]);
+
+    expect(response.body.data.pagination).toEqual({
+      page: 2,
+      limit: 2,
+      total: 4,
+      totalPages: 2,
+    });
+  });
+
+  test("returns an empty transaction list for a page beyond the available results", async () => {
+    await createQueryTestTransactions();
+
+    const response = await request(app)
+      .get("/api/transactions?page=3&limit=2")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.transactions)
+      .toEqual([]);
+
+    expect(response.body.data.pagination).toEqual({
+      page: 3,
+      limit: 2,
+      total: 4,
+      totalPages: 2,
+    });
+  });
+
+  test("updates the calculated account balance from income and expense transactions", async () => {
+    await createTransaction({
+      amount: 100000,
+      type: "INCOME",
+      description: "Balance test income",
+      transactionDate: "2026-09-20",
+      categoryId: incomeCategoryId,
+    });
+
+    await createTransaction({
+      amount: 35000,
+      type: "EXPENSE",
+      description: "Balance test expense",
+      transactionDate: "2026-09-21",
+      categoryId: expenseCategoryId,
+    });
+
+    const response = await request(app)
+      .get(`/api/accounts/${accountId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+
+    expect(Number(response.body.data.balance))
+      .toBe(65000);
+  });
+
+  test("cannot delete an account that has transactions", async () => {
+    const transaction = await createTransaction({
+      amount: 15000,
+      type: "EXPENSE",
+      description: "Protected account transaction",
+      transactionDate: "2026-09-22",
+      categoryId: expenseCategoryId,
+    });
+
+    const response = await request(app)
+      .delete(`/api/accounts/${accountId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(409);
+
+    expect(response.body).toEqual({
+      success: false,
+      message:
+        "Account cannot be deleted because it has transactions.",
+    });
+
+    const account = await prisma.account.findUnique({
+      where: {
+        id: accountId,
+      },
+    });
+
+    expect(account).not.toBeNull();
+
+    const savedTransaction =
+      await prisma.transaction.findUnique({
+        where: {
+          id: transaction.id,
+        },
+      });
+
+    expect(savedTransaction).not.toBeNull();
+  });
+
+  test("cannot delete a category that has transactions", async () => {
+    const transaction = await createTransaction({
+      amount: 18000,
+      type: "EXPENSE",
+      description: "Protected category transaction",
+      transactionDate: "2026-09-23",
+      categoryId: expenseCategoryId,
+    });
+
+    const response = await request(app)
+      .delete(`/api/categories/${expenseCategoryId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(409);
+
+    expect(response.body).toEqual({
+      success: false,
+      message:
+        "Cannot delete a category that has transactions.",
+    });
+
+    const category = await prisma.category.findUnique({
+      where: {
+        id: expenseCategoryId,
+      },
+    });
+
+    expect(category).not.toBeNull();
+
+    const savedTransaction =
+      await prisma.transaction.findUnique({
+        where: {
+          id: transaction.id,
+        },
+      });
+
+    expect(savedTransaction).not.toBeNull();
+  });
+
+  test("cannot change the type of a category that has transactions", async () => {
+    const transaction = await createTransaction({
+      amount: 22000,
+      type: "EXPENSE",
+      description: "Category type protection",
+      transactionDate: "2026-09-24",
+      categoryId: expenseCategoryId,
+    });
+
+    const response = await request(app)
+      .put(`/api/categories/${expenseCategoryId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        name: "Food",
+        type: "INCOME",
+      });
+
+    expect(response.status).toBe(409);
+
+    expect(response.body).toEqual({
+      success: false,
+      message:
+        "Cannot change the type of a category that is used by transactions.",
+    });
+
+    const category = await prisma.category.findUnique({
+      where: {
+        id: expenseCategoryId,
+      },
+    });
+
+    expect(category.type).toBe("EXPENSE");
+
+    const savedTransaction =
+      await prisma.transaction.findUnique({
+        where: {
+          id: transaction.id,
+        },
+      });
+
+    expect(savedTransaction).not.toBeNull();
+
+    expect(savedTransaction.type).toBe("EXPENSE");
   });
 });
