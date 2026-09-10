@@ -5,7 +5,15 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+   "jest": {
+    "setupFiles": [
+      "<rootDir>/tests/setup.js"
+    ],
+    "testEnvironment": "node"
   },
   "keywords": [],
   "author": "",
@@ -24,7 +32,9 @@
     "seed": "node prisma/seed.js"
   },
   "devDependencies": {
+    "jest": "^30.5.1",
     "nodemon": "^3.1.14",
-    "prisma": "^6.16.3"
+    "prisma": "^6.16.3",
+    "supertest": "^7.2.2"
   }
 }
