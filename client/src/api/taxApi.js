@@ -21,6 +21,9 @@ export const getTaxSummary = async (year) => {
   });
 
   return apiClient(
-    `/tax/summary?${params.toString()}`
+    `/tax/summary?${params.toString()}`,
+    {
+      cache: "no-store",
+    }
   );
 };

@@ -89,7 +89,9 @@ function App() {
           path="/tax"
           element={
             <ProtectedRoute>
-              <TaxCalculator />
+              <AppLayout>
+                <TaxCalculator />
+              </AppLayout>
             </ProtectedRoute>
           }
         />
