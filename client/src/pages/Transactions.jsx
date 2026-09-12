@@ -425,11 +425,15 @@ const Transactions = () => {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label
+                htmlFor="transaction-type"
+                className="mb-1 block text-sm font-medium"
+              >
                 Type
               </label>
 
               <select
+                id="transaction-type"
                 name="type"
                 value={formData.type}
                 onChange={handleFormChange}
@@ -441,11 +445,15 @@ const Transactions = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label
+                htmlFor="transaction-amount"
+                className="mb-1 block text-sm font-medium"
+              >
                 Amount
               </label>
 
               <input
+                id="transaction-amount"
                 type="number"
                 name="amount"
                 value={formData.amount}
@@ -458,11 +466,14 @@ const Transactions = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label 
+                htmlFor="transaction-account"
+                className="mb-1 block text-sm font-medium">
                 Account
               </label>
 
               <select
+                id="transaction-account"
                 name="accountId"
                 value={formData.accountId}
                 onChange={handleFormChange}
@@ -483,11 +494,14 @@ const Transactions = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label 
+                htmlFor="transaction-category"
+                className="mb-1 block text-sm font-medium">
                 Category
               </label>
 
               <select
+                id="transaction-category"
                 name="categoryId"
                 value={formData.categoryId}
                 onChange={handleFormChange}
@@ -508,11 +522,14 @@ const Transactions = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label 
+                htmlFor="transaction-date"
+                className="mb-1 block text-sm font-medium">
                 Date
               </label>
 
               <input
+                id="transaction-date"
                 type="date"
                 name="transactionDate"
                 value={formData.transactionDate}
@@ -523,11 +540,14 @@ const Transactions = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label 
+                htmlFor="transaction-description"
+                className="mb-1 block text-sm font-medium">
                 Description
               </label>
 
               <input
+                id="transaction-description"
                 type="text"
                 name="description"
                 value={formData.description}
@@ -645,11 +665,15 @@ const Transactions = () => {
         </select>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label 
+            htmlFor="transaction-start-date"
+            className="mb-1 block text-sm font-medium"
+          >
             From
           </label>
 
           <input
+            id="transaction-start-date"
             type="date"
             value={startDate}
             onChange={(event) => {
@@ -662,11 +686,15 @@ const Transactions = () => {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label
+            htmlFor="transaction-end-date"
+            className="mb-1 block text-sm font-medium"
+          >
             To
           </label>
 
           <input
+            id="transaction-end-date"
             type="date"
             value={endDate}
             onChange={(event) => {

@@ -561,30 +561,26 @@ describe("Transactions", () => {
 
     expect(form).not.toBeNull();
 
-    const typeInput =
-      form.querySelector('[name="type"]');
+    const typeSelect =
+      within(form).getByLabelText("Type");
 
     const amountInput =
-      form.querySelector('[name="amount"]');
+      within(form).getByLabelText("Amount");
 
-    const accountInput =
-      form.querySelector('[name="accountId"]');
+    const accountSelect =
+      within(form).getByLabelText("Account");
 
-    const categoryInput =
-      form.querySelector('[name="categoryId"]');
+    const categorySelect =
+      within(form).getByLabelText("Category");
 
     const dateInput =
-      form.querySelector(
-        '[name="transactionDate"]'
-      );
+      within(form).getByLabelText("Date");
 
     const descriptionInput =
-      form.querySelector(
-        '[name="description"]'
-      );
+      within(form).getByLabelText("Description");
 
     await user.selectOptions(
-      typeInput,
+      typeSelect,
       "EXPENSE"
     );
 
@@ -594,12 +590,12 @@ describe("Transactions", () => {
     );
 
     await user.selectOptions(
-      accountInput,
+      accountSelect,
       "account-1"
     );
 
     await user.selectOptions(
-      categoryInput,
+      categorySelect,
       "category-1"
     );
 
@@ -719,12 +715,10 @@ describe("Transactions", () => {
     expect(form).not.toBeNull();
 
     const amountInput =
-      form.querySelector('[name="amount"]');
+      within(form).getByLabelText("Amount");
 
     const descriptionInput =
-      form.querySelector(
-        '[name="description"]'
-      );
+      within(form).getByLabelText("Description");
 
     expect(amountInput).toHaveValue(25000);
 
