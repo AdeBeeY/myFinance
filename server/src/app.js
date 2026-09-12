@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const { CLIENT_URL } = require("./config/env");
 
 const authRoutes = require("./routes/authRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
@@ -11,7 +13,14 @@ const taxRoutes = require("./routes/taxRoutes");
 
 const app = express();
 
-app.use(cors());
+app.use(helmet());
+
+app.use(
+  cors({
+    origin: CLIENT_URL,
+  })
+);
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
