@@ -265,11 +265,9 @@ describe("Transactions", () => {
       name: "Transactions",
     });
 
-    // Search
+    // Search input accessible via label
     fireEvent.change(
-      screen.getByPlaceholderText(
-        "Search transactions..."
-      ),
+      screen.getByLabelText("Search transactions"),
       {
         target: {
           value: "groceries",
@@ -291,13 +289,8 @@ describe("Transactions", () => {
       name: "Transactions",
     });
 
-    // Type
-    const typeSelect =
-      screen
-        .getByRole("option", {
-          name: "All types",
-        })
-        .closest("select");
+    // Type filter select accessible via label
+    const typeSelect = screen.getByLabelText("Filter by type");
 
     await user.selectOptions(
       typeSelect,
@@ -318,13 +311,8 @@ describe("Transactions", () => {
       name: "Transactions",
     });
 
-    // Category
-    const categorySelect =
-      screen
-        .getByRole("option", {
-          name: "All categories",
-        })
-        .closest("select");
+    // Category filter select accessible via label
+    const categorySelect = screen.getByLabelText("Filter by category");
 
     await user.selectOptions(
       categorySelect,
@@ -345,13 +333,8 @@ describe("Transactions", () => {
       name: "Transactions",
     });
 
-    // Account
-    const accountSelect =
-      screen
-        .getByRole("option", {
-          name: "All accounts",
-        })
-        .closest("select");
+    // Account filter select accessible via label
+    const accountSelect = screen.getByLabelText("Filter by account");
 
     await user.selectOptions(
       accountSelect,
@@ -402,12 +385,8 @@ describe("Transactions", () => {
       name: "Transactions",
     });
 
-    const sortSelect =
-      screen
-        .getByRole("option", {
-          name: "Newest first",
-        })
-        .closest("select");
+    // Sort select accessible via label
+    const sortSelect = screen.getByLabelText("Sort transactions");
 
     await user.selectOptions(
       sortSelect,
@@ -786,128 +765,128 @@ describe("Transactions", () => {
   });
 
   test("deletes a transaction after confirmation and refreshes the list", async () => {
-  const user = userEvent.setup();
+    const user = userEvent.setup();
 
-  const confirmSpy = vi
-    .spyOn(window, "confirm")
-    .mockReturnValue(true);
+    const confirmSpy = vi
+      .spyOn(window, "confirm")
+      .mockReturnValue(true);
 
-  getTransactions
-    .mockResolvedValueOnce(
-      successfulTransactionResponse
-    )
-    .mockResolvedValue({
-      data: {
-        transactions: [],
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
+    getTransactions
+      .mockResolvedValueOnce(
+        successfulTransactionResponse
+      )
+      .mockResolvedValue({
+        data: {
+          transactions: [],
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: 0,
+            totalPages: 0,
+          },
         },
-      },
+      });
+
+    deleteTransaction.mockResolvedValue({
+      success: true,
     });
 
-  deleteTransaction.mockResolvedValue({
-    success: true,
-  });
-
-  render(
-    <MemoryRouter>
-      <Transactions />
-    </MemoryRouter>
-  );
-
-  await screen.findByText(
-    "Weekly groceries"
-  );
-
-  await user.click(
-    screen.getByRole("button", {
-      name: "Delete",
-    })
-  );
-
-  expect(confirmSpy)
-    .toHaveBeenCalledWith(
-      "Are you sure you want to delete this transaction?"
+    render(
+      <MemoryRouter>
+        <Transactions />
+      </MemoryRouter>
     );
 
-  await waitFor(() => {
-    expect(deleteTransaction)
-      .toHaveBeenCalledWith(
-        "transaction-1"
-      );
-  });
-
-  await waitFor(() => {
-    expect(getTransactions)
-      .toHaveBeenCalledTimes(2);
-  });
-
-  expect(
     await screen.findByText(
-      "No transactions yet"
-    )
-  ).toBeInTheDocument();
-
-  expect(
-    screen.queryByText(
       "Weekly groceries"
-    )
-  ).not.toBeInTheDocument();
-
-  confirmSpy.mockRestore();
-});
-
-test("does not delete a transaction when confirmation is cancelled", async () => {
-  const user = userEvent.setup();
-
-  const confirmSpy = vi
-    .spyOn(window, "confirm")
-    .mockReturnValue(false);
-
-  getTransactions.mockResolvedValue(
-    successfulTransactionResponse
-  );
-
-  render(
-    <MemoryRouter>
-      <Transactions />
-    </MemoryRouter>
-  );
-
-  await screen.findByText(
-    "Weekly groceries"
-  );
-
-  await user.click(
-    screen.getByRole("button", {
-      name: "Delete",
-    })
-  );
-
-  expect(confirmSpy)
-    .toHaveBeenCalledWith(
-      "Are you sure you want to delete this transaction?"
     );
 
-  expect(deleteTransaction)
-    .not.toHaveBeenCalled();
+    await user.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
 
-  expect(getTransactions)
-    .toHaveBeenCalledTimes(1);
+    expect(confirmSpy)
+      .toHaveBeenCalledWith(
+        "Are you sure you want to delete this transaction?"
+      );
 
-  expect(
-    screen.getByText(
+    await waitFor(() => {
+      expect(deleteTransaction)
+        .toHaveBeenCalledWith(
+          "transaction-1"
+        );
+    });
+
+    await waitFor(() => {
+      expect(getTransactions)
+        .toHaveBeenCalledTimes(2);
+    });
+
+    expect(
+      await screen.findByText(
+        "No transactions yet"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByText(
+        "Weekly groceries"
+      )
+    ).not.toBeInTheDocument();
+
+    confirmSpy.mockRestore();
+  });
+
+  test("does not delete a transaction when confirmation is cancelled", async () => {
+    const user = userEvent.setup();
+
+    const confirmSpy = vi
+      .spyOn(window, "confirm")
+      .mockReturnValue(false);
+
+    getTransactions.mockResolvedValue(
+      successfulTransactionResponse
+    );
+
+    render(
+      <MemoryRouter>
+        <Transactions />
+      </MemoryRouter>
+    );
+
+    await screen.findByText(
       "Weekly groceries"
-    )
-  ).toBeInTheDocument();
+    );
 
-  confirmSpy.mockRestore();
-});
+    await user.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
 
-test("shows an error when deleting a transaction fails", async () => {
+    expect(confirmSpy)
+      .toHaveBeenCalledWith(
+        "Are you sure you want to delete this transaction?"
+      );
+
+    expect(deleteTransaction)
+      .not.toHaveBeenCalled();
+
+    expect(getTransactions)
+      .toHaveBeenCalledTimes(1);
+
+    expect(
+      screen.getByText(
+        "Weekly groceries"
+      )
+    ).toBeInTheDocument();
+
+    confirmSpy.mockRestore();
+  });
+
+  test("shows an error when deleting a transaction fails", async () => {
     const user = userEvent.setup();
 
     const confirmSpy = vi

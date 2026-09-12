@@ -585,84 +585,134 @@ const Transactions = () => {
 
       {/* Filter Section */}
       <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <input
-          type="text"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            setPage(1);
-          }}
-          placeholder="Search transactions..."
-          className="rounded border px-3 py-2"
-        />
+        <div>
+          <label
+            htmlFor="transaction-search"
+            className="sr-only"
+          >
+            Search transactions
+          </label>
 
-        <select
-          value={type}
-          onChange={(event) => {
-            setType(event.target.value);
-            setCategoryId("");
-            setPage(1);
-          }}
-          className="rounded border px-3 py-2"
-        >
-          <option value="">All types</option>
-          <option value="INCOME">Income</option>
-          <option value="EXPENSE">Expense</option>
-        </select>
+          <input
+            id="transaction-search"
+            type="text"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Search transactions..."
+            className="w-full rounded border px-3 py-2"
+          />
+        </div>
 
-        <select
-          value={categoryId}
-          onChange={(event) => {
-            setCategoryId(event.target.value);
-            setPage(1);
-          }}
-          className="rounded border px-3 py-2"
-        >
-          <option value="">All categories</option>
+        <div>
+          <label
+            htmlFor="transaction-type-filter"
+            className="sr-only"
+          >
+            Filter by type
+          </label>
 
-          {filterCategories.map((category) => (
-            <option
-              key={category.id}
-              value={category.id}
-            >
-              {category.name}
-            </option>
-          ))}
-        </select>
+          <select
+            id="transaction-type-filter"
+            value={type}
+            onChange={(event) => {
+              setType(event.target.value);
+              setCategoryId("");
+              setPage(1);
+            }}
+            className="w-full rounded border px-3 py-2"
+          >
+            <option value="">All types</option>
+            <option value="INCOME">Income</option>
+            <option value="EXPENSE">Expense</option>
+          </select>
+        </div>
 
-        <select
-          value={sort}
-          onChange={(event) => {
-            setSort(event.target.value);
-            setPage(1);
-          }}
-          className="rounded border px-3 py-2"
-        >
-          <option value="date_desc">Newest first</option>
-          <option value="date_asc">Oldest first</option>
-          <option value="amount_desc">Highest amount</option>
-          <option value="amount_asc">Lowest amount</option>
-        </select>
+        <div>
+          <label
+            htmlFor="transaction-category-filter"
+            className="sr-only"
+          >
+            Filter by category
+          </label>
 
-        <select
-          value={accountId}
-          onChange={(event) => {
-            setAccountId(event.target.value);
-            setPage(1);
-          }}
-          className="rounded border px-3 py-2"
-        >
-          <option value="">All accounts</option>
+          <select
+            id="transaction-category-filter"
+            value={categoryId}
+            onChange={(event) => {
+              setCategoryId(event.target.value);
+              setPage(1);
+            }}
+            className="w-full rounded border px-3 py-2"
+          >
+            <option value="">All categories</option>
 
-          {accounts.map((account) => (
-            <option
-              key={account.id}
-              value={account.id}
-            >
-              {account.name}
-            </option>
-          ))}
-        </select>
+            {filterCategories.map((category) => (
+              <option
+                key={category.id}
+                value={category.id}
+              >
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="transaction-sort"
+            className="sr-only"
+          >
+            Sort transactions
+          </label>
+
+          <select
+            id="transaction-sort"
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value);
+              setPage(1);
+            }}
+            className="w-full rounded border px-3 py-2"
+          >
+            <option value="date_desc">Newest first</option>
+            <option value="date_asc">Oldest first</option>
+            <option value="amount_desc">Highest amount</option>
+            <option value="amount_asc">Lowest amount</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="transaction-account-filter"
+            className="sr-only"
+          >
+            Filter by account
+          </label>
+
+          <select
+            id="transaction-account-filter"
+            value={accountId}
+            onChange={(event) => {
+              setAccountId(event.target.value);
+              setPage(1);
+            }}
+            className="w-full rounded border px-3 py-2"
+          >
+            <option value="">All accounts</option>
+
+            {accounts.map((account) => (
+              <option
+                key={account.id}
+                value={account.id}
+              >
+                {account.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div>
           <label 
