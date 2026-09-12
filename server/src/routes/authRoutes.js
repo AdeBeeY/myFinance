@@ -14,9 +14,11 @@ const {
 
 const authenticate = require("../middlewares/authMiddleware");
 const validationMiddleware = require("../middlewares/validationMiddleware");
+const authRateLimiter = require("../middlewares/authRateLimiter");
 
 router.post(
   "/register",
+  authRateLimiter,
   registerValidator,
   validationMiddleware,
   register
@@ -24,6 +26,7 @@ router.post(
 
 router.post(
   "/login",
+  authRateLimiter,
   loginValidator,
   validationMiddleware,
   login
