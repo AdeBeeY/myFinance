@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
 import { registerUser } from "../api/authApi";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../utils/currency";
 
@@ -156,6 +159,16 @@ function Register() {
         >
           {isLoading ? "Creating Account..." : "Create Account"}
         </button>
+
+        <p className="text-center text-sm">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="underline"
+          >
+            Sign in
+          </Link>
+        </p>
       </form>
     </div>
   );

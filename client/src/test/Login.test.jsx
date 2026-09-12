@@ -72,6 +72,15 @@ describe("Login", () => {
         name: "Login",
       })
     ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("link", {
+        name: "Create an account",
+      })
+    ).toHaveAttribute(
+      "href",
+      "/register"
+    );
   });
 
   test("submits the entered credentials", async () => {

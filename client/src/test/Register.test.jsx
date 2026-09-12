@@ -78,6 +78,15 @@ describe("Register", () => {
     expect(
       screen.getByLabelText("Primary Currency")
     ).toHaveValue("NGN");
+
+    expect(
+      screen.getByRole("link", {
+        name: "Sign in",
+      })
+    ).toHaveAttribute(
+      "href",
+      "/login"
+    );
   });
 
   test("submits the entered registration data", async () => {
