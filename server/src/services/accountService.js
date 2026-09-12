@@ -38,71 +38,100 @@ const getAccounts = async (userId) => {
     where: {
       userId,
     },
-    include: {
-      transactions: {
-        select: {
-          amount: true,
-          type: true,
-        },
-      },
-    },
     orderBy: {
       name: "asc",
     },
   });
 
-  return accounts.map((account) => {
-    let balance = 0;
+  if (accounts.length === 0) {
+    return [];
+  }
 
-    for (const transaction of account.transactions) {
-      const amount = Number(transaction.amount);
+  const accountIds = accounts.map(
+    (account) => account.id
+  );
 
-      if (transaction.type === "INCOME") {
-        balance += amount;
-      } else if (transaction.type === "EXPENSE") {
-        balance -= amount;
-      }
-    }
-
-    return {
-      id: account.id,
-      name: account.name,
-      description: account.description,
-      balance,
-      createdAt: account.createdAt,
-      updatedAt: account.updatedAt,
-    };
+  const totals = await prisma.transaction.groupBy({
+    by: ["accountId", "type"],
+    where: {
+      userId,
+      accountId: {
+        in: accountIds,
+      },
+    },
+    _sum: {
+      amount: true,
+    },
   });
+
+  const balances = new Map();
+
+  for (const total of totals) {
+    const currentBalance =
+      balances.get(total.accountId) || 0;
+
+    const amount = Number(
+      total._sum.amount || 0
+    );
+
+    const balance =
+      total.type === "INCOME"
+        ? currentBalance + amount
+        : currentBalance - amount;
+
+    balances.set(total.accountId, balance);
+  }
+
+  return accounts.map((account) => ({
+    id: account.id,
+    name: account.name,
+    description: account.description,
+    balance: balances.get(account.id) || 0,
+    createdAt: account.createdAt,
+    updatedAt: account.updatedAt,
+  }));
 };
 
-const getAccountById = async (userId, accountId) => {
+const getAccountById = async (
+  userId,
+  accountId
+) => {
   const account = await prisma.account.findFirst({
     where: {
       id: accountId,
       userId,
     },
-    include: {
-      transactions: {
-        select: {
-          amount: true,
-          type: true,
-        },
-      },
-    },
   });
 
   if (!account) {
-    throw new AppError("Account not found.", 404);
+    throw new AppError(
+      "Account not found.",
+      404
+    );
   }
+
+  const totals =
+    await prisma.transaction.groupBy({
+      by: ["type"],
+      where: {
+        userId,
+        accountId,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
 
   let balance = 0;
 
-  for (const transaction of account.transactions) {
-    const amount = Number(transaction.amount);
+  for (const total of totals) {
+    const amount = Number(
+      total._sum.amount || 0
+    );
 
-    if (transaction.type === "INCOME") {
+    if (total.type === "INCOME") {
       balance += amount;
-    } else if (transaction.type === "EXPENSE") {
+    } else if (total.type === "EXPENSE") {
       balance -= amount;
     }
   }
