@@ -186,6 +186,7 @@ describe("Authentication API", () => {
         firstName: "Auth",
         lastName: "Tester",
         email: TEST_EMAIL,
+        currency: "NGN",
       },
     });
 
@@ -232,6 +233,16 @@ describe("Authentication API", () => {
         email: TEST_EMAIL,
         currency: "USD",
       });
+    
+    const profileResponse = await request(app)
+      .get("/api/auth/profile")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(profileResponse.status).toBe(200);
+
+    expect(profileResponse.body.user.currency).toBe(
+      "USD"
+    );
 
     expect(response.status).toBe(200);
 
