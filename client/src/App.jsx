@@ -10,6 +10,7 @@ import Categories from "./pages/Categories";
 import AppLayout from "./layouts/AppLayout";
 import Reports from "./pages/Reports";
 import TaxCalculator from "./pages/TaxCalculator";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -91,6 +92,17 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <TaxCalculator />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Profile />
               </AppLayout>
             </ProtectedRoute>
           }

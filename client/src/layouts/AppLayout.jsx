@@ -53,6 +53,13 @@ function AppLayout({ children }) {
           >
             Tax
           </NavLink>
+
+          <NavLink
+            to="/profile"
+            className={navLinkClass}
+          >
+            Profile
+          </NavLink>
         </div>
       </nav>
 

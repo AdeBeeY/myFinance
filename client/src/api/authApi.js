@@ -20,3 +20,28 @@ export const registerUser = async (userData) => {
 
   return response;
 };
+
+export const getProfile = async () => {
+  return apiClient("/auth/profile");
+};
+
+export const updateProfile = async (profileData) => {
+  const response = await apiClient("/auth/profile", {
+    method: "PUT",
+    body: JSON.stringify(profileData),
+  });
+
+  localStorage.setItem(
+    "user",
+    JSON.stringify(response.user)
+  );
+
+  return response;
+};
+
+export const changePassword = async (passwordData) => {
+  return apiClient("/auth/change-password", {
+    method: "PUT",
+    body: JSON.stringify(passwordData),
+  });
+};
