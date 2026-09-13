@@ -6,10 +6,14 @@ const {
   register,
   login,
   profile,
+  updateUserProfile,
+  changeUserPassword,
 } = require("../controllers/authController");
 const {
   registerValidator,
   loginValidator,
+  updateProfileValidator,
+  changePasswordValidator,
 } = require("../validators/authValidator");
 
 const authenticate = require("../middlewares/authMiddleware");
@@ -33,5 +37,21 @@ router.post(
 );
 
 router.get("/profile", authenticate, profile);
+
+router.put(
+  "/profile",
+  authenticate,
+  updateProfileValidator,
+  validationMiddleware,
+  updateUserProfile
+);
+
+router.put(
+  "/change-password",
+  authenticate,
+  changePasswordValidator,
+  validationMiddleware,
+  changeUserPassword
+);
 
 module.exports = router;

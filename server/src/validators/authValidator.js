@@ -31,7 +31,44 @@ const loginValidator = [
     .withMessage("Password is required."),
 ];
 
+const updateProfileValidator = [
+  body("firstName")
+    .trim()
+    .notEmpty()
+    .withMessage("First name is required."),
+
+  body("lastName")
+    .trim()
+    .notEmpty()
+    .withMessage("Last name is required."),
+
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Please enter a valid email address."),
+
+  body("currency")
+    .notEmpty()
+    .withMessage("Currency is required.")
+    .isIn(["NGN", "USD", "GBP", "EUR"])
+    .withMessage("Please select a valid currency."),
+];
+
+const changePasswordValidator = [
+  body("currentPassword")
+    .notEmpty()
+    .withMessage("Current password is required."),
+
+  body("newPassword")
+    .isLength({ min: 8 })
+    .withMessage(
+      "New password must be at least 8 characters long."
+    ),
+];
+
 module.exports = {
   registerValidator,
   loginValidator,
+  updateProfileValidator,
+  changePasswordValidator,
 };

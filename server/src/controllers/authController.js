@@ -1,4 +1,9 @@
-const { registerUser, loginUser } = require("../services/authService");
+const {
+  registerUser,
+  loginUser,
+  updateProfile,
+  changePassword,
+} = require("../services/authService");
 
 const asyncHandler = require("../helpers/asyncHandler");
 
@@ -38,8 +43,39 @@ const profile = asyncHandler(async (req, res) => {
   });
 });
 
+const updateUserProfile = asyncHandler(
+  async (req, res) => {
+    const user = await updateProfile(
+      req.user.id,
+      req.body
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      user,
+    });
+  }
+);
+
+const changeUserPassword = asyncHandler(
+  async (req, res) => {
+    await changePassword(
+      req.user.id,
+      req.body
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+  }
+);
+
 module.exports = {
   register,
   login,
   profile,
+  updateUserProfile,
+  changeUserPassword,
 };
