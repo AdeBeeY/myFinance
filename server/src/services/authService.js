@@ -4,6 +4,10 @@ const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
 const { JWT_SECRET, JWT_EXPIRES_IN } = require("../config/env");
 
+const DEFAULT_CATEGORIES = require(
+  "../constants/defaultCategories"
+);
+
 const registerUser = async (userData) => {
   const {
     firstName,
@@ -31,15 +35,30 @@ const registerUser = async (userData) => {
   const hashedPassword = await bcrypt.hash(password, 12);
 
   // Save user
-  const user = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      ...(currency && { currency }),
-    },
-  });
+  const user = await prisma.$transaction(
+    async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          password: hashedPassword,
+          ...(currency && { currency }),
+        },
+      });
+
+      await tx.category.createMany({
+        data: DEFAULT_CATEGORIES.map(
+          (category) => ({
+            ...category,
+            userId: createdUser.id,
+          })
+        ),
+      });
+
+      return createdUser;
+    }
+  );
 
   return user;
 };

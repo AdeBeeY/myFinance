@@ -110,28 +110,34 @@ const createTestFixtures = async () => {
 
   accountId = accountResponse.body.data.id;
 
-  const incomeCategoryResponse = await request(app)
-    .post("/api/categories")
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      name: "Salary",
-      type: "INCOME",
+  const incomeCategory =
+    await prisma.category.findFirst({
+      where: {
+        userId,
+        name: "Salary",
+        type: "INCOME",
+      },
     });
 
-  incomeCategoryId =
-    incomeCategoryResponse.body.data.id;
-
-  const expenseCategoryResponse = await request(app)
-    .post("/api/categories")
-    .set("Authorization", `Bearer ${token}`)
-    .send({
-      name: "Food",
-      type: "EXPENSE",
+  const expenseCategory =
+    await prisma.category.findFirst({
+      where: {
+        userId,
+        name: "Food",
+        type: "EXPENSE",
+      },
     });
 
-  expenseCategoryId =
-    expenseCategoryResponse.body.data.id;
-};
+  if (!incomeCategory || !expenseCategory) {
+    throw new Error(
+      "Default report test categories were not created."
+    );
+  }
+
+  incomeCategoryId = incomeCategory.id;
+  expenseCategoryId = expenseCategory.id;
+
+}
 
 const createTransaction = async ({
   amount,
@@ -282,7 +288,7 @@ describe("Reports API", () => {
       totalExpense: 130000,
       currentBalance: 370000,
       totalAccounts: 1,
-      totalCategories: 2,
+      totalCategories: 17,
       totalTransactions: 4,
     });
 
@@ -643,7 +649,7 @@ describe("Reports API", () => {
       totalExpense: 130000,
       currentBalance: 370000,
       totalAccounts: 1,
-      totalCategories: 2,
+      totalCategories: 17,
       totalTransactions: 4,
     });
 

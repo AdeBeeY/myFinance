@@ -85,9 +85,9 @@ describe("Categories API", () => {
       .post("/api/categories")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        name: "Salary",
+        name: "Consulting",
         type: "INCOME",
-        description: "Monthly salary",
+        description: "Consulting income",
       });
 
     expect(response.status).toBe(201);
@@ -96,9 +96,9 @@ describe("Categories API", () => {
       success: true,
       message: "Category created successfully.",
       data: {
-        name: "Salary",
+        name: "Consulting",
         type: "INCOME",
-        description: "Monthly salary",
+        description: "Consulting income",
       },
     });
 
@@ -108,7 +108,7 @@ describe("Categories API", () => {
       await prisma.category.findFirst({
         where: {
           userId,
-          name: "Salary",
+          name: "Consulting",
           type: "INCOME",
         },
       });
@@ -146,14 +146,16 @@ describe("Categories API", () => {
 
   test("rejects duplicate category with same name and type", async () => {
     const categoryData = {
-      name: "Food",
+      name: "Pet Care",
       type: "EXPENSE",
     };
 
-    await request(app)
+    const firstResponse = await request(app)
       .post("/api/categories")
       .set("Authorization", `Bearer ${token}`)
       .send(categoryData);
+
+    expect(firstResponse.status).toBe(201);
 
     const response = await request(app)
       .post("/api/categories")
@@ -194,15 +196,7 @@ describe("Categories API", () => {
       .post("/api/categories")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        name: "Utilities",
-        type: "EXPENSE",
-      });
-
-    await request(app)
-      .post("/api/categories")
-      .set("Authorization", `Bearer ${token}`)
-      .send({
-        name: "Food",
+        name: "Zoo",
         type: "EXPENSE",
       });
 
@@ -217,13 +211,17 @@ describe("Categories API", () => {
       message: "Categories retrieved successfully.",
     });
 
-    expect(response.body.data).toHaveLength(2);
+    const categoryNames = response.body.data.map(
+      (category) => category.name
+    );
 
-    expect(
-      response.body.data.map(
-        (category) => category.name
+    expect(categoryNames).toContain("Zoo");
+
+    expect(categoryNames).toEqual(
+      [...categoryNames].sort((a, b) =>
+        a.localeCompare(b)
       )
-    ).toEqual(["Food", "Utilities"]);
+    );
   });
 
   test("retrieves a category by id", async () => {
@@ -231,9 +229,9 @@ describe("Categories API", () => {
       .post("/api/categories")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        name: "Transport",
+        name: "Travel",
         type: "EXPENSE",
-        description: "Transport costs",
+        description: "Travel costs",
       });
 
     const categoryId =
@@ -250,9 +248,9 @@ describe("Categories API", () => {
       message: "Category retrieved successfully.",
       data: {
         id: categoryId,
-        name: "Transport",
+        name: "Travel",
         type: "EXPENSE",
-        description: "Transport costs",
+        description: "Travel costs",
       },
     });
   });
@@ -262,7 +260,7 @@ describe("Categories API", () => {
       .post("/api/categories")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        name: "Fuel",
+        name: "Car Maintenance",
         type: "EXPENSE",
         description: "Old description",
       });
@@ -274,7 +272,7 @@ describe("Categories API", () => {
       .put(`/api/categories/${categoryId}`)
       .set("Authorization", `Bearer ${token}`)
       .send({
-        name: "Vehicle Fuel",
+        name: "Vehicle Maintenance",
         type: "EXPENSE",
         description: "Updated description",
       });
@@ -286,7 +284,7 @@ describe("Categories API", () => {
       message: "Category updated successfully.",
       data: {
         id: categoryId,
-        name: "Vehicle Fuel",
+        name: "Vehicle Maintenance",
         type: "EXPENSE",
         description: "Updated description",
       },
