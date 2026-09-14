@@ -14,17 +14,34 @@ const getRequiredEnv = (name) => {
   return value;
 };
 
+const NODE_ENV =
+  process.env.NODE_ENV || "development";
+
+const getClientUrl = () => {
+  if (process.env.CLIENT_URL?.trim()) {
+    return process.env.CLIENT_URL;
+  }
+
+  if (NODE_ENV === "production") {
+    throw new Error(
+      "CLIENT_URL environment variable is required in production."
+    );
+  }
+
+  return "http://localhost:5173";
+};
+
 module.exports = {
+  NODE_ENV,
+
   PORT: process.env.PORT || 5000,
 
-  DATABASE_URL: process.env.DATABASE_URL,
+  DATABASE_URL: getRequiredEnv("DATABASE_URL"),
 
   JWT_SECRET: getRequiredEnv("JWT_SECRET"),
 
   JWT_EXPIRES_IN:
     process.env.JWT_EXPIRES_IN || "7d",
 
-  CLIENT_URL:
-    process.env.CLIENT_URL ||
-    "http://localhost:5173",
+  CLIENT_URL: getClientUrl(),
 };
