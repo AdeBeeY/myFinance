@@ -1,4 +1,9 @@
-const API_BASE_URL = "http://localhost:5000/api";
+const configuredApiUrl =
+  import.meta.env.VITE_API_URL?.trim();
+
+const API_BASE_URL =
+  configuredApiUrl?.replace(/\/$/, "") ||
+  "http://localhost:5000/api";
 
 const apiClient = async (endpoint, options = {}) => {
   const token = localStorage.getItem("token");
