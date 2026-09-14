@@ -21,6 +21,7 @@ import {
   getDashboardSummary,
   getExpenseBreakdown,
   getFinancialHealth,
+  getMonthlyTrends,
 } from "../api/reportApi";
 
 import {
@@ -35,6 +36,7 @@ vi.mock("../api/reportApi", () => ({
   getDashboardSummary: vi.fn(),
   getExpenseBreakdown: vi.fn(),
   getFinancialHealth: vi.fn(),
+  getMonthlyTrends: vi.fn(),
 }));
 
 vi.mock("../api/accountApi", () => ({
@@ -183,6 +185,15 @@ const mockSuccessfulCoreRequests = () => {
   });
 };
 
+const monthlyTrendsData = Array.from(
+  { length: 12 },
+  (_, index) => ({
+    month: index + 1,
+    income: index === 0 ? 150000 : 0,
+    expense: index === 0 ? 50000 : 0,
+  })
+);
+
 const renderDashboard = () => {
   render(
     <MemoryRouter>
@@ -194,6 +205,11 @@ const renderDashboard = () => {
 describe("Dashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    getMonthlyTrends.mockResolvedValue({
+      success: true,
+      data: monthlyTrendsData,
+    });
   });
 
   test("shows loading state while dashboard data is loading", () => {

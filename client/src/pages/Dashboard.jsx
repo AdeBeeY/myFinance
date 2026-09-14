@@ -3,6 +3,7 @@ import {
   getDashboardSummary,
   getExpenseBreakdown,
   getFinancialHealth,
+  getMonthlyTrends,
 } from "../api/reportApi";
 import { getAccounts } from "../api/accountApi";
 import SummaryCards from "../components/dashboard/SummaryCards";
@@ -17,6 +18,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import { getTaxSummary } from "../api/taxApi";
 import EstimatedTax from "../components/dashboard/EstimatedTax";
+import MonthlyIncomeChart from "../components/dashboard/MonthlyIncomeChart";
+import MonthlyExpenseChart from "../components/dashboard/MonthlyExpenseChart";
+import IncomeExpenseChart from "../components/dashboard/IncomeExpenseChart";
+import CategoryDistributionChart from "../components/dashboard/CategoryDistributionChart";
 
 function Dashboard() {
   const user = getCurrentUser();
@@ -30,6 +35,8 @@ function Dashboard() {
   const [error, setError] = useState("");
   const [taxSummary, setTaxSummary] = useState(null);
   const [taxError, setTaxError] = useState("");
+  const [monthlyTrends, setMonthlyTrends] =
+  useState([]);
 
   const handleLogout = () => {
     logout();
@@ -48,17 +55,26 @@ function Dashboard() {
           accountsResponse,
           financialHealthResponse,
           expenseBreakdownResponse,
+          monthlyTrendsResponse,
         ] = await Promise.all([
           getDashboardSummary(),
           getAccounts(),
           getFinancialHealth(),
           getExpenseBreakdown(),
+          getMonthlyTrends(currentYear),
         ]);
 
         setDashboard(dashboardResponse.data);
         setAccounts(accountsResponse.data);
-        setFinancialHealth(financialHealthResponse.data);
-        setExpenseBreakdown(expenseBreakdownResponse.data);
+        setFinancialHealth(
+          financialHealthResponse.data
+        );
+        setExpenseBreakdown(
+          expenseBreakdownResponse.data
+        );
+        setMonthlyTrends(
+          monthlyTrendsResponse.data
+        );
 
       try {
         setTaxError("");
@@ -132,10 +148,39 @@ function Dashboard() {
         />
       )}
 
-      <ExpenseBreakdown
-        expenses={expenseBreakdown}
-        currency={user?.currency}
-      />
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <MonthlyIncomeChart
+          trends={monthlyTrends}
+          currency={user?.currency}
+          year={new Date().getFullYear()}
+        />
+
+        <MonthlyExpenseChart
+          trends={monthlyTrends}
+          currency={user?.currency}
+          year={new Date().getFullYear()}
+        />
+      </div>
+
+      <div className="mt-6">
+        <IncomeExpenseChart
+          trends={monthlyTrends}
+          currency={user?.currency}
+          year={new Date().getFullYear()}
+        />
+      </div>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <CategoryDistributionChart
+          expenses={expenseBreakdown}
+          currency={user?.currency}
+        />
+
+        <ExpenseBreakdown
+          expenses={expenseBreakdown}
+          currency={user?.currency}
+        />
+      </div>
 
       <RecentTransactions
         transactions={dashboard.recentTransactions}

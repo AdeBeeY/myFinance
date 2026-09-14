@@ -1,4 +1,7 @@
 import { formatCurrency } from "../../utils/currency";
+import {
+  CATEGORY_COLORS,
+} from "../../constants/chartColors";
 
 function ExpenseBreakdown({
   expenses,
@@ -24,9 +27,9 @@ function ExpenseBreakdown({
         </div>
       ) : (
         <div className="mt-4 space-y-4 rounded-lg border bg-white p-5 shadow-sm">
-          {expenses.map((item) => {
+          {expenses.map((expense, index) => {
             const amount = Number(
-              item.totalExpense
+              expense.totalExpense
             );
 
             const percentage =
@@ -35,10 +38,10 @@ function ExpenseBreakdown({
                 : 0;
 
             return (
-              <div key={item.categoryId}>
+              <div key={expense.categoryId}>
                 <div className="flex items-center justify-between gap-4">
                   <p className="font-medium">
-                    {item.categoryName}
+                    {expense.categoryName}
                   </p>
 
                   <div className="text-right">
@@ -58,8 +61,12 @@ function ExpenseBreakdown({
                 <div className="mt-2 h-2 overflow-hidden rounded bg-gray-200">
                   <div
                     className="h-full bg-gray-700"
-                    style={{
+                     style={{
                       width: `${percentage}%`,
+                      backgroundColor:
+                        CATEGORY_COLORS[
+                          index % CATEGORY_COLORS.length
+                        ],
                     }}
                   />
                 </div>
