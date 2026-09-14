@@ -211,4 +211,130 @@ describe("DateRangeReportSection", () => {
       )
     ).toBeInTheDocument();
   });
+
+  test("applies the Today preset", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DateRangeReportSection currency="NGN" />
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Today",
+      })
+    );
+
+    const today = new Date();
+
+    const year = today.getFullYear();
+
+    const month = String(
+      today.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      today.getDate()
+    ).padStart(2, "0");
+
+    const expectedDate =
+      `${year}-${month}-${day}`;
+
+    expect(
+      screen.getByLabelText("Start Date")
+    ).toHaveValue(expectedDate);
+
+    expect(
+      screen.getByLabelText("End Date")
+    ).toHaveValue(expectedDate);
+  });
+
+  test("applies the This Month preset", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DateRangeReportSection currency="NGN" />
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "This Month",
+      })
+    );
+
+    const today = new Date();
+
+    const year = today.getFullYear();
+
+    const month = String(
+      today.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      today.getDate()
+    ).padStart(2, "0");
+
+    expect(
+      screen.getByLabelText("Start Date")
+    ).toHaveValue(
+      `${year}-${month}-01`
+    );
+
+    expect(
+      screen.getByLabelText("End Date")
+    ).toHaveValue(
+      `${year}-${month}-${day}`
+    );
+  });
+
+  test("submits a quick period through the existing date-range API", async () => {
+    const user = userEvent.setup();
+
+    getDateRangeReport.mockResolvedValue({
+      data: {
+        startDate: "2026-01-01",
+        endDate: "2026-09-14",
+        income: 100000,
+        expense: 40000,
+        balance: 60000,
+        transactionCount: 5,
+      },
+    });
+
+    render(
+      <DateRangeReportSection currency="NGN" />
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "This Year",
+      })
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Generate Report",
+      })
+    );
+
+    const currentYear =
+      new Date().getFullYear();
+
+    expect(getDateRangeReport)
+      .toHaveBeenCalledTimes(1);
+
+    expect(getDateRangeReport)
+      .toHaveBeenCalledWith(
+        `${currentYear}-01-01`,
+        expect.stringMatching(
+          new RegExp(
+            `^${currentYear}-\\d{2}-\\d{2}$`
+          )
+        )
+      );
+
+    expect(
+      await screen.findByText("5")
+    ).toBeInTheDocument();
+  });
 });

@@ -21,3 +21,72 @@ export const getMonthName = (monthNumber) => {
     )?.label || ""
   );
 };
+
+const formatDateForInput = (date) => {
+  const year = date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+export const getReportPeriod = (
+  period,
+  currentDate = new Date()
+) => {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const day = currentDate.getDate();
+
+  const today = new Date(year, month, day);
+
+  switch (period) {
+    case "today":
+      return {
+        startDate: formatDateForInput(today),
+        endDate: formatDateForInput(today),
+      };
+
+    case "week": {
+      const start = new Date(today);
+
+      const dayOfWeek = start.getDay();
+      const daysSinceMonday =
+        dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+      start.setDate(
+        start.getDate() - daysSinceMonday
+      );
+
+      return {
+        startDate: formatDateForInput(start),
+        endDate: formatDateForInput(today),
+      };
+    }
+
+    case "month":
+      return {
+        startDate: formatDateForInput(
+          new Date(year, month, 1)
+        ),
+        endDate: formatDateForInput(today),
+      };
+
+    case "year":
+      return {
+        startDate: formatDateForInput(
+          new Date(year, 0, 1)
+        ),
+        endDate: formatDateForInput(today),
+      };
+
+    default:
+      return null;
+  }
+};

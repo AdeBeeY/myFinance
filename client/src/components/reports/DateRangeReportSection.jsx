@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { getDateRangeReport } from "../../api/reportApi";
 import { formatCurrency } from "../../utils/currency";
+import {
+  getReportPeriod,
+} from "../../utils/reportUtils";
 
 function DateRangeReportSection({ currency }) {
   const [startDate, setStartDate] = useState("");
@@ -46,6 +49,17 @@ function DateRangeReportSection({ currency }) {
     }
   };
 
+  const handlePeriodSelect = (period) => {
+    const range = getReportPeriod(period);
+
+    if (!range) return;
+
+    setStartDate(range.startDate);
+    setEndDate(range.endDate);
+    setReport(null);
+    setError("");
+  };
+
   return (
     <section className="border-t pt-8">
       <h2 className="text-2xl font-bold">
@@ -56,6 +70,54 @@ function DateRangeReportSection({ currency }) {
         Analyze your finances between two
         specific dates.
       </p>
+
+      <div className="mt-4">
+        <p className="text-sm font-medium text-gray-700">
+          Quick periods
+        </p>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              handlePeriodSelect("today")
+            }
+            className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Today
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              handlePeriodSelect("week")
+            }
+            className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            This Week
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              handlePeriodSelect("month")
+            }
+            className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            This Month
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              handlePeriodSelect("year")
+            }
+            className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            This Year
+          </button>
+        </div>
+      </div>
 
       <form
         onSubmit={handleSubmit}
