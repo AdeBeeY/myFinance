@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const { CLIENT_URL } = require("./config/env");
+const prisma = require("./config/prisma");
 
 const authRoutes = require("./routes/authRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
@@ -31,6 +32,24 @@ app.get("/", (req, res) => {
   res.json({
     message: "Welcome to MyFinance API",
   });
+});
+
+app.get("/health", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+
+    return res.status(200).json({
+      status: "ok",
+      database: "connected",
+    });
+  } catch (error) {
+    console.error("Health check failed:", error);
+
+    return res.status(503).json({
+      status: "error",
+      database: "unavailable",
+    });
+  }
 });
 
 app.use("/api/auth", authRoutes);
