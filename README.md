@@ -8,8 +8,22 @@ The application is deployed as a production full-stack system using **Vercel** f
 
 ## Live Application
 
-- Frontend: https://my-finance-smoky-nine.vercel.app
-- API: https://backend-production-9ed6.up.railway.app
+- **Live Demo:** https://my-finance-smoky-nine.vercel.app
+- **Production API:** https://backend-production-9ed6.up.railway.app
+
+## Screenshots
+
+### Dashboard
+
+![MyFinance Dashboard](docs/screenshots/dashboard.png)
+
+### Transactions
+
+![MyFinance Transactions](docs/screenshots/transactions.png)
+
+### Reports
+
+![MyFinance Reports](docs/screenshots/reports.png)
 
 ---
 
