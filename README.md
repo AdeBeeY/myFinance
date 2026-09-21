@@ -10,6 +10,7 @@ The application is deployed as a production full-stack system using **Vercel** f
 
 - **Live Demo:** https://my-finance-smoky-nine.vercel.app
 - **Production API:** https://backend-production-9ed6.up.railway.app
+- **Project Case Study:** [Read the full case study](docs/case-study.md)
 
 ## Screenshots
 
