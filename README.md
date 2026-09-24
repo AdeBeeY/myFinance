@@ -695,18 +695,9 @@ This project demonstrates:
 
 # Future Enhancements
 
-Possible future enhancements include:
+Post-v1.0 development is organized into a prioritized product roadmap covering account recovery and verification, data export, observability, accessibility, budgeting, recurring transactions, financial goals, session security, and longer-term product improvements.
 
-- OpenAPI/Swagger API documentation
-- Structured production logging and monitoring
-- Password reset/email recovery
-- Email verification
-- Refresh-token or session revocation support
-- Additional analytics
-- Data export
-- Custom domain
-- Accessibility improvements
-- Further responsive/mobile UX improvements
+See the **[MyFinance Product Roadmap](docs/roadmap.md)** for the planned development horizons and engineering priorities.
 
 ---
 
