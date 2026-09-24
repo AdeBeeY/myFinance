@@ -1,0 +1,2342 @@
+openapi: 3.1.0
+
+info:
+  title: MyFinance API
+  version: 1.0.0
+  description: |
+    REST API for the MyFinance personal finance management application.
+
+    MyFinance provides authentication, account and category management,
+    financial transactions, reporting and analytics, tax estimation,
+    and user profile management.
+
+    Most API endpoints require JWT authentication using a Bearer token.
+
+  license:
+    name: MIT
+
+servers:
+  - url: https://backend-production-9ed6.up.railway.app
+    description: Production server
+
+  - url: http://localhost:5000
+    description: Local development server
+
+tags:
+  - name: System
+    description: API status and health endpoints
+
+  - name: Authentication
+    description: User registration, login, profile, and password management
+
+  - name: Accounts
+    description: Financial account management
+
+  - name: Categories
+    description: Income and expense category management
+
+  - name: Transactions
+    description: Financial transaction management
+
+  - name: Reports
+    description: Financial reports and analytics
+
+  - name: Tax
+    description: Tax settings and estimated tax calculations
+
+paths:
+  /:
+    get:
+      tags:
+        - System
+      summary: Get API welcome message
+      operationId: getApiWelcome
+      security: []
+      responses:
+        "200":
+          description: API is reachable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Welcome to MyFinance API
+                required:
+                  - message
+
+  /health:
+    get:
+      tags:
+        - System
+      summary: Check API and database health
+      description: |
+        Checks whether the API is running and whether the application
+        can successfully communicate with the database.
+      operationId: getHealth
+      security: []
+      responses:
+        "200":
+          description: API and database are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  database:
+                    type: string
+                    const: connected
+                required:
+                  - status
+                  - database
+
+        "503":
+          description: API is running but the database is unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    const: error
+                  database:
+                    type: string
+                    const: unavailable
+                required:
+                  - status
+                  - database
+
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  message:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - success
+                  - message
+                  - user
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Log in a user
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  message:
+                    type: string
+                  token:
+                    type: string
+                    description: JWT access token
+                  user:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - success
+                  - message
+                  - token
+                  - user
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Get the authenticated user's profile
+      operationId: getUserProfile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  user:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - success
+                  - user
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    put:
+      tags:
+        - Authentication
+      summary: Update the authenticated user's profile
+      operationId: updateUserProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  message:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+                required:
+                  - success
+                  - message
+                  - user
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/auth/change-password:
+    put:
+      tags:
+        - Authentication
+      summary: Change the authenticated user's password
+      operationId: changeUserPassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  message:
+                    type: string
+                required:
+                  - success
+                  - message
+
+        "400":
+          description: Validation failure or new password matches current password
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ValidationError"
+                  - $ref: "#/components/schemas/ApiError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /api/accounts:
+    get:
+      tags:
+        - Accounts
+      summary: Get all accounts
+      operationId: getAccounts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Account"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    post:
+      tags:
+        - Accounts
+      summary: Create an account
+      operationId: createAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountRequest"
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedAccountResponse"
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: Get all categories
+      operationId: getCategories
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Category"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    post:
+      tags:
+        - Categories
+      summary: Create a category
+      operationId: createCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "201":
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/categories/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Category UUID
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Categories
+      summary: Get a category by ID
+      operationId: getCategoryById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Category retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    put:
+      tags:
+        - Categories
+      summary: Update a category
+      description: |
+        Updates a category belonging to the authenticated user.
+        The category type cannot be changed after the category has
+        been used by a transaction.
+      operationId: updateCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCategoryRequest"
+      responses:
+        "200":
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+    delete:
+      tags:
+        - Categories
+      summary: Delete a category
+      description: |
+        Deletes a category belonging to the authenticated user.
+        Categories associated with existing transactions cannot be deleted.
+      operationId: deleteCategory
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Category deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: "null"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/accounts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Account UUID
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Accounts
+      summary: Get an account by ID
+      operationId: getAccountById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    put:
+      tags:
+        - Accounts
+      summary: Update an account
+      operationId: updateAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccountRequest"
+      responses:
+        "200":
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+    delete:
+      tags:
+        - Accounts
+      summary: Delete an account
+      description: |
+        Deletes an account if it belongs to the authenticated user and
+        has no associated transactions.
+      operationId: deleteAccount
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: "null"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+        "409":
+          $ref: "#/components/responses/ConflictError"
+
+  /api/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get transactions
+      description: |
+        Retrieves the authenticated user's transactions with optional
+        filtering, searching, sorting, and pagination.
+      operationId: getTransactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          description: Number of transactions per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+
+        - name: type
+          in: query
+          description: Filter by transaction type
+          schema:
+            $ref: "#/components/schemas/TransactionType"
+
+        - name: accountId
+          in: query
+          description: Filter by account UUID
+          schema:
+            type: string
+            format: uuid
+
+        - name: categoryId
+          in: query
+          description: Filter by category UUID
+          schema:
+            type: string
+            format: uuid
+
+        - name: startDate
+          in: query
+          description: Filter transactions on or after this date
+          schema:
+            $ref: "#/components/schemas/ISODate"
+
+        - name: endDate
+          in: query
+          description: Filter transactions on or before this date
+          schema:
+            $ref: "#/components/schemas/ISODate"
+
+        - name: minAmount
+          in: query
+          description: Minimum transaction amount
+          schema:
+            type: number
+            minimum: 0
+
+        - name: maxAmount
+          in: query
+          description: Maximum transaction amount
+          schema:
+            type: number
+            minimum: 0
+
+        - name: search
+          in: query
+          description: |
+            Searches transaction descriptions, account names,
+            and category names.
+          schema:
+            type: string
+            maxLength: 100
+
+        - name: sort
+          in: query
+          description: Transaction sort order
+          schema:
+            type: string
+            enum:
+              - date_desc
+              - date_asc
+              - amount_desc
+              - amount_asc
+            default: date_desc
+
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionsResponse"
+
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    post:
+      tags:
+        - Transactions
+      summary: Create a transaction
+      description: |
+        Creates a transaction for the authenticated user. The selected
+        account and category must belong to that user, and the transaction
+        type must match the category type.
+      operationId: createTransaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionRequest"
+      responses:
+        "201":
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+
+        "400":
+          description: |
+            Request validation failed or the transaction type does not
+            match the selected category type.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ValidationError"
+                  - $ref: "#/components/schemas/ApiError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /api/transactions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Transaction UUID
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Transactions
+      summary: Get a transaction by ID
+      operationId: getTransactionById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Transaction retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    put:
+      tags:
+        - Transactions
+      summary: Update a transaction
+      description: |
+        Updates a transaction belonging to the authenticated user.
+        If the account, category, or type changes, the resulting account
+        and category must still belong to the user and the transaction
+        type must match the category type.
+      operationId: updateTransaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTransactionRequest"
+      responses:
+        "200":
+          description: Transaction updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+
+        "400":
+          description: |
+            Request validation failed or the transaction type does not
+            match the selected category type.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ValidationError"
+                  - $ref: "#/components/schemas/ApiError"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+    delete:
+      tags:
+        - Transactions
+      summary: Delete a transaction
+      operationId: deleteTransaction
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Transaction deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: "null"
+
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+
+  /api/reports/dashboard:
+    get:
+      tags:
+        - Reports
+      summary: Get dashboard summary
+      description: |
+        Returns the authenticated user's overall financial summary
+        together with recent transactions.
+      operationId: getDashboardSummary
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DashboardData"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/monthly:
+    get:
+      tags:
+        - Reports
+      summary: Get monthly financial report
+      operationId: getMonthlyReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        "200":
+          description: Monthly report retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/MonthlyReport"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/categories:
+    get:
+      tags:
+        - Reports
+      summary: Get spending by category
+      operationId: getCategorySpendingReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        "200":
+          description: Category spending report retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CategorySpending"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/date-range:
+    get:
+      tags:
+        - Reports
+      summary: Get financial report for a date range
+      operationId: getDateRangeReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          description: Start of the reporting period
+          schema:
+            $ref: "#/components/schemas/ISODate"
+        - name: endDate
+          in: query
+          required: true
+          description: End of the reporting period
+          schema:
+            $ref: "#/components/schemas/ISODate"
+      responses:
+        "200":
+          description: Date-range report retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/DateRangeReport"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/monthly-trends:
+    get:
+      tags:
+        - Reports
+      summary: Get monthly income and expense trends
+      operationId: getMonthlyTrends
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+      responses:
+        "200":
+          description: Monthly trends retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        minItems: 12
+                        maxItems: 12
+                        items:
+                          $ref: "#/components/schemas/MonthlyTrend"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/cash-flow:
+    get:
+      tags:
+        - Reports
+      summary: Get monthly cash flow
+      operationId: getCashFlow
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+      responses:
+        "200":
+          description: Cash-flow report retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        minItems: 12
+                        maxItems: 12
+                        items:
+                          $ref: "#/components/schemas/CashFlowMonth"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/expense-breakdown:
+    get:
+      tags:
+        - Reports
+      summary: Get expense breakdown by category
+      operationId: getExpenseBreakdown
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Expense breakdown retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ExpenseCategory"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/top-spending-categories:
+    get:
+      tags:
+        - Reports
+      summary: Get top spending categories
+      operationId: getTopSpendingCategories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of categories to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 5
+      responses:
+        "200":
+          description: Top spending categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ExpenseCategory"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/largest-transactions:
+    get:
+      tags:
+        - Reports
+      summary: Get largest transactions
+      operationId: getLargestTransactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of transactions to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 5
+      responses:
+        "200":
+          description: Largest transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/LargestTransaction"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/income-expense-ratio:
+    get:
+      tags:
+        - Reports
+      summary: Get income-to-expense ratio
+      operationId: getIncomeExpenseRatio
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Income-expense ratio retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/IncomeExpenseRatio"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/savings-rate:
+    get:
+      tags:
+        - Reports
+      summary: Get savings rate
+      operationId: getSavingsRate
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Savings rate retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/SavingsRate"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/monthly-savings-trend:
+    get:
+      tags:
+        - Reports
+      summary: Get monthly savings trend
+      operationId: getMonthlySavingsTrend
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+      responses:
+        "200":
+          description: Monthly savings trend retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        minItems: 12
+                        maxItems: 12
+                        items:
+                          $ref: "#/components/schemas/MonthlySavings"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/reports/financial-health:
+    get:
+      tags:
+        - Reports
+      summary: Get financial health metrics
+      description: |
+        Returns aggregate financial metrics including balance,
+        expense ratio, savings rate, and income-expense ratio.
+      operationId: getFinancialHealth
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Financial health metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/FinancialHealth"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/tax/settings:
+    get:
+      tags:
+        - Tax
+      summary: Get tax settings
+      description: |
+        Returns the authenticated user's tax settings for configured years.
+      operationId: getTaxSettings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Tax settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TaxSetting"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    put:
+      tags:
+        - Tax
+      summary: Create or update a tax setting
+      description: |
+        Creates or updates the authenticated user's tax rate for
+        the specified year.
+      operationId: upsertTaxSetting
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaxSettingRequest"
+      responses:
+        "200":
+          description: Tax setting saved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaxSetting"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api/tax/calculate:
+    post:
+      tags:
+        - Tax
+      summary: Calculate estimated tax
+      description: |
+        Calculates estimated tax for the specified year using the
+        authenticated user's configured tax rate and financial data.
+      operationId: calculateTax
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaxCalculationRequest"
+      responses:
+        "200":
+          description: Estimated tax calculated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaxCalculation"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          description: No tax setting exists for the requested year
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: false
+                  message:
+                    type: string
+                  data:
+                    type: "null"
+                required:
+                  - success
+                  - message
+                  - data
+
+  /api/tax/summary:
+    get:
+      tags:
+        - Tax
+      summary: Get tax summary
+      description: |
+        Returns the estimated tax summary for the requested year using
+        the authenticated user's configured tax rate and financial data.
+      operationId: getTaxSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+      responses:
+        "200":
+          description: Tax summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccess"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaxCalculation"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          description: No tax setting exists for the requested year
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: false
+                  message:
+                    type: string
+                  data:
+                    type: "null"
+                required:
+                  - success
+                  - message
+                  - data
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationError"
+
+    UnauthorizedError:
+      description: Authentication failed or the JWT is missing, invalid, or expired
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    NotFoundError:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    ConflictError:
+      description: Request conflicts with an existing resource or its current state
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+  schemas:
+    Currency:
+      type: string
+      enum:
+        - NGN
+        - USD
+        - GBP
+        - EUR
+
+    TransactionType:
+      type: string
+      enum:
+        - INCOME
+        - EXPENSE
+
+    ISODate:
+      description: |
+        ISO 8601 date or date-time value accepted by the API.
+      oneOf:
+        - type: string
+          format: date
+        - type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        currency:
+          $ref: "#/components/schemas/Currency"
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - currency
+
+    ValidationErrorItem:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+      required:
+        - field
+        - message
+
+    ValidationError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+          example: Validation failed.
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationErrorItem"
+      required:
+        - success
+        - message
+        - errors
+
+    ApiError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        balance:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - description
+        - balance
+        - createdAt
+        - updatedAt
+
+    CreatedAccount:
+      allOf:
+        - $ref: "#/components/schemas/Account"
+        - type: object
+          properties:
+            userId:
+              type: string
+              format: uuid
+          required:
+            - userId
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/TransactionType"
+        description:
+          type:
+            - string
+            - "null"
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - type
+        - description
+        - userId
+        - createdAt
+        - updatedAt
+
+    TransactionCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/TransactionType"
+      required:
+        - id
+        - name
+        - type
+
+    TransactionAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - id
+        - name
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          description: Decimal monetary amount serialized as a JSON string.
+          example: "150000.00"
+        type:
+          $ref: "#/components/schemas/TransactionType"
+        description:
+          type:
+            - string
+            - "null"
+        transactionDate:
+          type: string
+          format: date-time
+        userId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        category:
+          $ref: "#/components/schemas/TransactionCategory"
+        account:
+          $ref: "#/components/schemas/TransactionAccount"
+      required:
+        - id
+        - amount
+        - type
+        - description
+        - transactionDate
+        - userId
+        - categoryId
+        - accountId
+        - createdAt
+        - updatedAt
+        - category
+        - account
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+
+    PaginatedTransactions:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - transactions
+        - pagination
+
+    TaxSetting:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        taxRate:
+          type: number
+          minimum: 0
+          maximum: 100
+        userId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - year
+        - taxRate
+        - userId
+        - createdAt
+        - updatedAt
+
+    TaxCalculation:
+      type: object
+      properties:
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        taxableIncome:
+          type: number
+        taxRate:
+          type: number
+        estimatedTax:
+          type: number
+      required:
+        - year
+        - totalIncome
+        - totalExpense
+        - taxableIncome
+        - taxRate
+        - estimatedTax
+
+    RegisterRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          format: password
+        currency:
+          $ref: "#/components/schemas/Currency"
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        currency:
+          $ref: "#/components/schemas/Currency"
+      required:
+        - firstName
+        - lastName
+        - email
+        - currency
+
+    ChangePasswordRequest:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+      required:
+        - currentPassword
+        - newPassword
+
+    CreateAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 191
+      required:
+        - name
+
+    UpdateAccountRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 191
+
+    CreateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+        type:
+          $ref: "#/components/schemas/TransactionType"
+        description:
+          type: string
+          maxLength: 255
+      required:
+        - name
+        - type
+
+    UpdateCategoryRequest:
+      $ref: "#/components/schemas/CreateCategoryRequest"
+
+    CreateTransactionRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          exclusiveMinimum: 0
+          multipleOf: 0.01
+        type:
+          $ref: "#/components/schemas/TransactionType"
+        transactionDate:
+          $ref: "#/components/schemas/ISODate"
+        categoryId:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          maxLength: 191
+      required:
+        - amount
+        - type
+        - transactionDate
+        - categoryId
+        - accountId
+
+    UpdateTransactionRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          exclusiveMinimum: 0
+          multipleOf: 0.01
+        type:
+          $ref: "#/components/schemas/TransactionType"
+        transactionDate:
+          $ref: "#/components/schemas/ISODate"
+        categoryId:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          maxLength: 191
+
+    TaxSettingRequest:
+      type: object
+      properties:
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        taxRate:
+          type: number
+          minimum: 0
+          maximum: 100
+      required:
+        - year
+        - taxRate
+
+    TaxCalculationRequest:
+      type: object
+      properties:
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+      required:
+        - year
+
+    ApiSuccess:
+      type: object
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data: {}
+      required:
+        - success
+        - message
+        - data
+
+    AccountResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiSuccess"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Account"
+
+    CreatedAccountResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiSuccess"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/CreatedAccount"
+
+    CategoryResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiSuccess"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Category"
+
+    TransactionResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiSuccess"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Transaction"
+
+    TransactionsResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiSuccess"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/PaginatedTransactions"
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        currentBalance:
+          type: number
+        totalAccounts:
+          type: integer
+          minimum: 0
+        totalCategories:
+          type: integer
+          minimum: 0
+        totalTransactions:
+          type: integer
+          minimum: 0
+      required:
+        - totalIncome
+        - totalExpense
+        - currentBalance
+        - totalAccounts
+        - totalCategories
+        - totalTransactions
+
+    DashboardData:
+      type: object
+      properties:
+        summary:
+          $ref: "#/components/schemas/DashboardSummary"
+        recentTransactions:
+          type: array
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/Transaction"
+      required:
+        - summary
+        - recentTransactions
+
+    MonthlyReport:
+      type: object
+      properties:
+        year:
+          type: integer
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        income:
+          type: number
+        expense:
+          type: number
+        balance:
+          type: number
+        transactionCount:
+          type: integer
+          minimum: 0
+      required:
+        - year
+        - month
+        - income
+        - expense
+        - balance
+        - transactionCount
+
+    CategorySpending:
+      type: object
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        total:
+          type: number
+      required:
+        - categoryId
+        - categoryName
+        - total
+
+    DateRangeReport:
+      type: object
+      properties:
+        startDate:
+          type: string
+        endDate:
+          type: string
+        income:
+          type: number
+        expense:
+          type: number
+        balance:
+          type: number
+        transactionCount:
+          type: integer
+          minimum: 0
+      required:
+        - startDate
+        - endDate
+        - income
+        - expense
+        - balance
+        - transactionCount
+
+    MonthlyTrend:
+      type: object
+      properties:
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        income:
+          type: number
+        expense:
+          type: number
+      required:
+        - month
+        - income
+        - expense
+
+    CashFlowMonth:
+      type: object
+      properties:
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        income:
+          type: number
+        expense:
+          type: number
+        netCashFlow:
+          type: number
+        runningBalance:
+          type: number
+      required:
+        - month
+        - income
+        - expense
+        - netCashFlow
+        - runningBalance
+
+    ExpenseCategory:
+      type: object
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        totalExpense:
+          type: number
+      required:
+        - categoryId
+        - categoryName
+        - totalExpense
+
+    LargestTransaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        type:
+          $ref: "#/components/schemas/TransactionType"
+        description:
+          type:
+            - string
+            - "null"
+        transactionDate:
+          type: string
+          format: date-time
+        category:
+          $ref: "#/components/schemas/TransactionCategory"
+        account:
+          $ref: "#/components/schemas/TransactionAccount"
+      required:
+        - transactionId
+        - amount
+        - type
+        - description
+        - transactionDate
+        - category
+        - account
+
+    IncomeExpenseRatio:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        balance:
+          type: number
+        expenseRatio:
+          type: number
+        incomeExpenseRatio:
+          type: number
+      required:
+        - totalIncome
+        - totalExpense
+        - balance
+        - expenseRatio
+        - incomeExpenseRatio
+
+    SavingsRate:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        savings:
+          type: number
+        savingsRate:
+          type: number
+      required:
+        - totalIncome
+        - totalExpense
+        - savings
+        - savingsRate
+
+    MonthlySavings:
+      type: object
+      properties:
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        income:
+          type: number
+        expense:
+          type: number
+        savings:
+          type: number
+        savingsRate:
+          type: number
+      required:
+        - month
+        - income
+        - expense
+        - savings
+        - savingsRate
+
+    FinancialHealth:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpense:
+          type: number
+        balance:
+          type: number
+        expenseRatio:
+          type: number
+        savingsRate:
+          type: number
+        incomeExpenseRatio:
+          type: number
+      required:
+        - totalIncome
+        - totalExpense
+        - balance
+        - expenseRatio
+        - savingsRate
+        - incomeExpenseRatio

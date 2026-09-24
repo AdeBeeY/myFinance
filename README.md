@@ -321,6 +321,10 @@ Each transaction belongs to a user, account, and category.
 
 The API uses the `/api` prefix.
 
+The complete API contract, including request and response schemas, validation rules, authentication requirements, query parameters, and error responses, is documented using **OpenAPI 3.1**:
+
+- **OpenAPI Specification:** [docs/api/openapi.yaml](docs/api/openapi.yaml)
+
 ## Authentication
 
 | Method | Endpoint |
@@ -382,6 +386,15 @@ Key report endpoints include:
 | GET | `/api/reports/financial-health` |
 
 The frontend uses the generic date-range report to provide **Today**, **Week**, **Month**, **Year**, and **Custom** reporting periods.
+
+## Tax
+
+| Method | Endpoint |
+| --- | --- |
+| GET | `/api/tax/settings` |
+| PUT | `/api/tax/settings` |
+| POST | `/api/tax/calculate` |
+| GET | `/api/tax/summary` |
 
 ---
 
