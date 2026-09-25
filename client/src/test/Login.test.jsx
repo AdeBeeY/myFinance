@@ -55,7 +55,7 @@ describe("Login", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Login",
+        name: "Welcome back",
       })
     ).toBeInTheDocument();
 
@@ -69,7 +69,7 @@ describe("Login", () => {
 
     expect(
       screen.getByRole("button", {
-        name: "Login",
+        name: "Sign in",
       })
     ).toBeInTheDocument();
 
@@ -108,7 +108,7 @@ describe("Login", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Login",
+        name: "Sign in",
       })
     );
 
@@ -144,7 +144,7 @@ describe("Login", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Login",
+        name: "Sign in",
       })
     );
 
@@ -174,7 +174,7 @@ describe("Login", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Login",
+        name: "Sign in",
       })
     );
 

@@ -55,7 +55,7 @@ describe("Register", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Create an Account",
+        name: "Create your account",
       })
     ).toBeInTheDocument();
 
@@ -125,7 +125,7 @@ describe("Register", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Create Account",
+        name: "Create account",
       })
     );
 
@@ -171,7 +171,7 @@ describe("Register", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Create Account",
+        name: "Create account",
       })
     );
 
@@ -213,7 +213,7 @@ describe("Register", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Create Account",
+        name: "Create account",
       })
     );
 
@@ -265,7 +265,7 @@ describe("Register", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Create Account",
+        name: "Create account",
       })
     );
 

@@ -2,66 +2,95 @@ import { NavLink } from "react-router-dom";
 
 function AppLayout({ children }) {
   const navLinkClass = ({ isActive }) =>
-    `rounded px-3 py-2 text-sm font-medium ${
+    `rounded-lg px-2.5 py-2 text-sm font-medium transition ${
       isActive
-        ? "bg-gray-900 text-white"
-        : "text-gray-700 hover:bg-gray-100"
+        ? "bg-blue-700 text-white"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
     }`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="border-b bg-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap gap-2 px-4 py-4">
-          <NavLink
-            to="/dashboard"
-            className={navLinkClass}
-          >
-            Dashboard
-          </NavLink>
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:gap-x-6">
+            <NavLink
+              to="/dashboard"
+              className="flex shrink-0 items-center gap-2"
+              aria-label="MyFinance dashboard"
+            >
+              <img
+                src="/favicon.png"
+                alt=""
+                className="h-9 w-9 rounded-lg"
+              />
 
-          <NavLink
-            to="/accounts"
-            className={navLinkClass}
-          >
-            Accounts
-          </NavLink>
+              <div className="leading-tight">
+                <span className="block text-lg font-bold text-slate-900">
+                  MyFinance
+                </span>
 
-          <NavLink
-            to="/categories"
-            className={navLinkClass}
-          >
-            Categories
-          </NavLink>
+                <span className="block text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">
+                  Track • Manage • Grow
+                </span>
+              </div>
+            </NavLink>
 
-          <NavLink
-            to="/transactions"
-            className={navLinkClass}
-          >
-            Transactions
-          </NavLink>
+            <nav
+              aria-label="Main navigation"
+              className="flex w-full flex-wrap items-center gap-1 sm:w-auto sm:flex-1"
+            >
+              <NavLink
+                to="/dashboard"
+                className={navLinkClass}
+              >
+                Dashboard
+              </NavLink>
 
-          <NavLink
-            to="/reports"
-            className={navLinkClass}
-          >
-            Reports
-          </NavLink>
+              <NavLink
+                to="/accounts"
+                className={navLinkClass}
+              >
+                Accounts
+              </NavLink>
 
-          <NavLink
-            to="/tax"
-            className={navLinkClass}
-          >
-            Tax
-          </NavLink>
+              <NavLink
+                to="/categories"
+                className={navLinkClass}
+              >
+                Categories
+              </NavLink>
 
-          <NavLink
-            to="/profile"
-            className={navLinkClass}
-          >
-            Profile
-          </NavLink>
+              <NavLink
+                to="/transactions"
+                className={navLinkClass}
+              >
+                Transactions
+              </NavLink>
+
+              <NavLink
+                to="/reports"
+                className={navLinkClass}
+              >
+                Reports
+              </NavLink>
+
+              <NavLink
+                to="/tax"
+                className={navLinkClass}
+              >
+                Tax
+              </NavLink>
+
+              <NavLink
+                to="/profile"
+                className={navLinkClass}
+              >
+                Profile
+              </NavLink>
+            </nav>
+          </div>
         </div>
-      </nav>
+      </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         {children}
