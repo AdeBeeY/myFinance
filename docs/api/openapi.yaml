@@ -16,7 +16,7 @@ info:
     name: MIT
 
 servers:
-  - url: https://backend-production-9ed6.up.railway.app
+  - url: https://api.myfinance.mydevplug.com.ng
     description: Production server
 
   - url: http://localhost:5000

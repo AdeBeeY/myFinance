@@ -399,6 +399,6 @@ These improvements can be introduced incrementally without changing the core arc
 
 ## Project Links
 
-- **Live Application:** https://my-finance-smoky-nine.vercel.app
-- **Production API:** https://backend-production-9ed6.up.railway.app
+- **Live Application:** https://myfinance.mydevplug.com.ng
+- **Production API:** https://api.myfinance.mydevplug.com.ng
 - **Source Code:** https://github.com/AdeBeeY/myFinance

@@ -8,8 +8,8 @@ The application is deployed as a production full-stack system using **Vercel** f
 
 ## Live Application
 
-- **Live Demo:** https://my-finance-smoky-nine.vercel.app
-- **Production API:** https://backend-production-9ed6.up.railway.app
+- **Live Demo:** https://myfinance.mydevplug.com.ng
+- **Production API:** https://api.myfinance.mydevplug.com.ng
 - **Project Case Study:** [Read the full case study](docs/case-study.md)
 
 ## Screenshots
@@ -589,7 +589,7 @@ The React/Vite application is deployed from the `client` directory.
 Production environment variable:
 
 ```env
-VITE_API_URL=https://backend-production-9ed6.up.railway.app/api
+VITE_API_URL=https://api.myfinance.mydevplug.com.ng/api
 ```
 
 `client/vercel.json` provides SPA fallback routing so direct navigation to React Router routes works correctly.
