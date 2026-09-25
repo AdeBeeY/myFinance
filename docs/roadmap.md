@@ -24,6 +24,8 @@ MyFinance v1.0 provides a production-ready foundation including:
 - OpenAPI 3.1 API documentation
 - Vercel frontend deployment
 - Railway backend and MySQL deployment
+- Branded production frontend at `https://myfinance.mydevplug.com.ng`
+- Branded production API at `https://api.myfinance.mydevplug.com.ng`
 
 The `v1.0.0` Git tag represents the first production release.
 
@@ -146,10 +148,6 @@ Potential PWA capabilities:
 - Improved mobile experience
 - Appropriate offline functionality
 - Application manifest and service worker support
-
-### Custom Domain
-
-Move from platform-generated deployment domains to a dedicated MyFinance domain if justified by continued public use.
 
 ### Advanced Analytics
 
