@@ -12,10 +12,10 @@ function AppLayout({ children }) {
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:gap-x-6">
+          <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:gap-x-6">
             <NavLink
               to="/dashboard"
-              className="flex shrink-0 items-center gap-2"
+              className="flex shrink-0 items-center justify-center gap-2 sm:justify-start"
               aria-label="MyFinance dashboard"
             >
               <img
@@ -37,7 +37,7 @@ function AppLayout({ children }) {
 
             <nav
               aria-label="Main navigation"
-              className="flex w-full flex-wrap items-center gap-1 sm:w-auto sm:flex-1"
+              className="flex w-full flex-wrap items-center justify-center gap-1 sm:w-auto sm:flex-1 sm:justify-start"
             >
               <NavLink
                 to="/dashboard"
